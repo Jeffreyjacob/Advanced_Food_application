@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import ConnectDB from './config/dbConfig';
 import { ErrorHandler } from './middleware/errorhandler';
 import { serverAdapter } from './BullBoard';
+import { emailWorker } from './queue/email/worker';
 
 const limiter = rateLimit({
   windowMs: config.security.rateLimit.windowMs,

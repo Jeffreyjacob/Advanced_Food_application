@@ -1,23 +1,45 @@
 version: "3.8"
 services:
   backend:
-    build: ./server/
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: dev
     volumes:
       - ./server:/app
     ports:
       - "8000:8000"
     image: fooddeliverybackend:latest
     container_name: backend
-    command: npm start
     restart: unless-stopped
     depends_on:
-      - redis
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - ./server/.env
+    environment:
+      - NODE_ENV=development
+      - DEV_MONGODB_URI=mongodb://mongo:27017/FoodDelivery
+    command: npm run dev
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
-    container_name: redis_real_estate
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
@@ -30,17 +52,6 @@ services:
       timeout: 5s
       retries: 5
 
-  worker:
-    build: ./server/
-    volumes:
-      - ./server:/app
-    container_name: worker
-    command: npm run worker
-    restart: unless-stopped
-    depends_on:
-      - redis
-    env_file:
-      - ./server/.env
-
-volumes: 
-   redis_data
+volumes:
+  mongo_data:
+  redis_data:

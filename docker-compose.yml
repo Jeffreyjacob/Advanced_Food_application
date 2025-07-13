@@ -42,4 +42,5 @@ services:
     env_file:
       - ./server/.env
 
-volumes: redis_data
+volumes: 
+   redis_data

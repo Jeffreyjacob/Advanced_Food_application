@@ -6,7 +6,8 @@
     "format": "prettier --write .",
     "dev": "nodemon --exec ts-node ./src/index.ts",
     "start": "node dist/index.js",
-    "build": "npm install && npx tsc"
+    "build": "npm install && npx tsc",
+    "worker": "ts-node src/worker.ts"
   },
   "keywords": [],
   "author": "",

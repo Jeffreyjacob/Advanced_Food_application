@@ -1,0 +1,45 @@
+version: "3.8"
+services:
+  backend:
+    build: ./server/
+    volumes:
+      - ./server:/app
+    ports:
+      - "8000:8000"
+    image: fooddeliverybackend:latest
+    container_name: backend
+    command: npm start
+    restart: unless-stopped
+    depends_on:
+      - redis
+    env_file:
+      - ./server/.env
+
+  redis:
+    image: redis:alpine
+    container_name: redis_real_estate
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build: ./server/
+    volumes:
+      - ./server:/app
+    container_name: worker
+    command: npm run worker
+    restart: unless-stopped
+    depends_on:
+      - redis
+    env_file:
+      - ./server/.env
+
+volumes: redis_data

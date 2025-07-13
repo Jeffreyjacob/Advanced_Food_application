@@ -58,4 +58,26 @@ export default {
       max: parseInt(process.env.NODEENV === 'development' ? '1000' : '100', 10),
     },
   },
+
+  redis: {
+    host: process.env.REDIS_HOST || 'redis',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || undefined,
+  },
+
+  bullmq: {
+    defaultJobOptions: {
+      removeOnComplete: parseInt(
+        process.env.BULLMQ_REMOVE_ON_COMPLETE || '100',
+        10
+      ),
+      removeOnFail: parseInt(process.env.BULLMQ_ON_FAIL || '50', 10),
+      attempts: parseInt(process.env.BULL_MQ_ATTEMPTS || '3', 10),
+      backoff: {
+        type: 'exponential',
+        delay: parseInt(process.env.BULLMQ_BACKOFF_DELAY || '2000', 10),
+      },
+    },
+    concurrency: parseInt(process.env.BULLMQ_CONCURRENCY || '10', 10),
+  },
 };

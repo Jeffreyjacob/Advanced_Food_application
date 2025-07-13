@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import ConnectDB from './config/dbConfig';
 import { ErrorHandler } from './middleware/errorhandler';
+import { serverAdapter } from './BullBoard';
+import { emailWorker } from './queue/email/worker';
 
 const limiter = rateLimit({
   windowMs: config.security.rateLimit.windowMs,
@@ -46,6 +48,8 @@ const StartServer = async () => {
   app.use(cookieParser());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  app.use(`${config.apiPrefix}/admin/queues`, serverAdapter.getRouter());
 
   app.use(ErrorHandler);
 

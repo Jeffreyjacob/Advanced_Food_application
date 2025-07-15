@@ -35,6 +35,7 @@ const CustomerSchema: Schema<ICustomer> = new Schema(
     favorites: {
       type: [Schema.Types.ObjectId],
       ref: 'restaurants',
+      default: [],
     },
     loyaltyPoints: {
       type: Number,

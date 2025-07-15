@@ -26,8 +26,13 @@ const BaseUserSchema: Schema<IBaseUser> = new Schema(
       type: String,
       trim: true,
       enum: RoleEnums,
+      required: true,
     },
     password: {
+      type: String,
+      required: true,
+    },
+    country: {
       type: String,
       required: true,
     },

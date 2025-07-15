@@ -19,13 +19,14 @@ export interface IBaseUser extends Document {
   lastName: string;
   phone: string;
   avatar: string;
-  emailOtp?: string;
+  emailOtp?: number;
   emailOtpExpiresAt?: Date;
   emailisVerified: boolean;
   passwordReset: {
     token?: string;
     expiresAt?: Date;
   };
+  country: string;
   loginAttempts: number;
   accountLockedUntil?: Date;
   lastLogin: Date;

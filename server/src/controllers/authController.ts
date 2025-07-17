@@ -3,8 +3,10 @@ import { AuthenticationServices } from '../services/authServices';
 import { AsycnHandler } from '../utils/asyncHandler';
 import {
   loginCustomerValidators,
+  loginDriverValidators,
   loginRestaurantOwnerValidators,
   registerCustomerValidators,
+  registerDriverValidators,
   registerRestaurantOwnerValidators,
   resendOtpValidators,
   verifyOtpValidators,
@@ -100,6 +102,37 @@ export class AuthenticationController {
           res,
           data: validatedBody,
         });
+
+      return res.status(200).json({
+        success: true,
+        data: result.message,
+      });
+    }
+  );
+
+  static RegisterDriverController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await registerDriverValidators(req.body);
+
+      const result = await AuthenticationController.authService.RegisterDriver({
+        data: validatedBody,
+      });
+
+      return res.status(201).json({
+        succes: true,
+        data: result.message,
+      });
+    }
+  );
+
+  static LoginDriverController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await loginDriverValidators(req.body);
+
+      const result = await AuthenticationController.authService.LoginDriver({
+        res,
+        data: validatedBody,
+      });
 
       return res.status(200).json({
         success: true,

@@ -176,8 +176,10 @@ export class AuthenticationServices {
       new Date(user.accountLockedUntil) > new Date()
     ) {
       const lockTimeRemaining = Math.ceil(
-        (new Date(user.accountLockedUntil).getTime() - new Date().getTime()) /
-          (1000 * 60)
+        Math.ceil(
+          (new Date(user.accountLockedUntil).getTime() - new Date().getTime()) /
+            (1000 * 60)
+        )
       );
 
       throw new AppError(
@@ -370,9 +372,10 @@ export class AuthenticationServices {
       user.accountLockedUntil &&
       new Date(user.accountLockedUntil) > new Date()
     ) {
-      const lockTimeRemaining =
+      const lockTimeRemaining = Math.ceil(
         (new Date(user.accountLockedUntil).getTime() - new Date().getTime()) /
-        (1000 * 60);
+          (1000 * 60)
+      );
 
       throw new AppError(
         `Your account is locked try again in ${lockTimeRemaining} minutes`,
@@ -469,7 +472,7 @@ export class AuthenticationServices {
       country: data.country,
       traceableLocation: {
         type: 'Point',
-        coordinates: data.locationCoord,
+        coordinates: data.locationCord,
       },
     });
 
@@ -533,9 +536,10 @@ export class AuthenticationServices {
       user.accountLockedUntil &&
       new Date(user.accountLockedUntil) > new Date()
     ) {
-      const lockTimeRemaining =
+      const lockTimeRemaining = Math.ceil(
         (new Date(user.accountLockedUntil).getTime() - new Date().getTime()) /
-        (1000 * 60);
+          (1000 * 60)
+      );
 
       throw new AppError(
         `Your account is locked try again in ${lockTimeRemaining} minutes`,

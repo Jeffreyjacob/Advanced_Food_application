@@ -57,7 +57,7 @@ export interface IDriverMutation {
     email: string;
     password: string;
     country: string;
-    locationCoord: number[];
+    locationCord: number[];
   };
   loginDriver: {
     email: string;

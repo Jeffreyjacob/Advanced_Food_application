@@ -26,4 +26,12 @@ authRoutes
   .route('/login/restaurant')
   .post(AuthenticationController.LoginRestaurantOwnerController);
 
+authRoutes
+  .route('/register/driver')
+  .post(AuthenticationController.RegisterDriverController);
+
+authRoutes
+  .route('/login/driver')
+  .post(AuthenticationController.LoginDriverController);
+
 export default authRoutes;

@@ -2,6 +2,7 @@ import Joi, { ObjectSchema } from 'joi';
 import {
   IAuthenticationMutation,
   ICustomerMutation,
+  IDriverMutation,
   IRestaurantMutation,
 } from '../interface/interface/interface';
 import { countriesISO } from '../utils/countryIso';
@@ -100,4 +101,32 @@ export const loginRestaurantOwnerValidators = async (
     });
 
   return validators.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const registerDriverValidators = async (
+  reqBody: IDriverMutation['registerDriver']
+): Promise<IDriverMutation['registerDriver']> => {
+  const validator: ObjectSchema<IDriverMutation['registerDriver']> = Joi.object(
+    {
+      firstName: Joi.string().required(),
+      lastName: Joi.string().required(),
+      email: Joi.string().lowercase().required(),
+      password: Joi.string().required(),
+      country: Joi.string(),
+      locationCord: Joi.array().items(Joi.number().required()).required(),
+    }
+  );
+
+  return validator.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const loginDriverValidators = async (
+  reqBody: IDriverMutation['loginDriver']
+): Promise<IDriverMutation['loginDriver']> => {
+  const validator: ObjectSchema<IDriverMutation['loginDriver']> = Joi.object({
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+  });
+
+  return validator.validateAsync(reqBody, { abortEarly: false });
 };

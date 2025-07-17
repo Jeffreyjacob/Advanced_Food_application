@@ -163,3 +163,11 @@ export interface IWallet extends Document {
   deauthorizedAt: Date;
   isActive: boolean;
 }
+
+export interface IToken extends Document {
+  _id: mongoose.Types.ObjectId;
+  user: IBaseUser['_id'];
+  token: string;
+  isRevoked: boolean;
+  isExpiresAt: Date;
+}

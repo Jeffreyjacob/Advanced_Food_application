@@ -7,6 +7,10 @@ export interface ICustomerMutation {
     locationCord: number[];
     country: string;
   };
+  loginCustomer: {
+    email: string;
+    password: string;
+  };
 }
 
 export interface IAuthenticationMutation {

@@ -12,6 +12,10 @@ authRoutes
   .post(AuthenticationController.VerifyOtpController);
 authRoutes
   .route('/resendOtp')
-  .post(AuthenticationController.RsendOtpController);
+  .post(AuthenticationController.ResendOtpController);
+
+authRoutes
+  .route('/login/customer')
+  .post(AuthenticationController.LoginCustomerController);
 
 export default authRoutes;

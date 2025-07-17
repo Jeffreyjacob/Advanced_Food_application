@@ -50,6 +50,14 @@ const StartServer = async () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  emailWorker.on('ready', () => {
+    console.log('Email worker is ready');
+  });
+
+  emailWorker.on('error', (err) => {
+    console.error('Email worker error:', err);
+  });
+
   app.use(`${config.apiPrefix}/admin/queues`, serverAdapter.getRouter());
   app.use(`${config.apiPrefix}/auth`, authRoutes);
 

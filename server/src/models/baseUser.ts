@@ -2,6 +2,7 @@ import { model, Schema } from 'mongoose';
 import { IBaseUser } from '../interface/models/models';
 import { RoleEnums } from '../interface/enums/enums';
 import bcrypt from 'bcryptjs';
+import { GenerateToken } from '../utils/token.utils';
 
 const BaseUserSchema: Schema<IBaseUser> = new Schema(
   {
@@ -93,10 +94,16 @@ BaseUserSchema.pre('save', async function (next) {
 
 BaseUserSchema.pre('save', async function (next) {
   if (this.isModified('emailOtp') && this.emailOtp) {
-    this.emailOtpExpiresAt = new Date(Date.now() + 60 + 60 * 1000);
+    this.emailOtpExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
   }
   next();
 });
+
+BaseUserSchema.methods.generateAuthTokens = function (
+  this: IBaseUser
+): ReturnType<typeof GenerateToken> {
+  return GenerateToken(this);
+};
 
 BaseUserSchema.methods.comparePassword = async function (
   candidatePassword: string

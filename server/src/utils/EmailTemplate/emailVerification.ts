@@ -11,8 +11,7 @@ export const EmailVerificationHTMl = ({
   expiryTime: string;
   url: string;
 }) => {
-  return;
-  `
+  return `
     <!-- File: src/utils/templates/verifyEmail/verifyEmail.html -->
 <!DOCTYPE html>
 <html lang="en">

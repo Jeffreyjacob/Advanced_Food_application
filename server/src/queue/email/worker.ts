@@ -20,6 +20,7 @@ const emailWorker = new Worker(
     console.log(`Processing email job ${job.id}`);
     console.log(`Sending email to: ${to}`);
     console.log(`Subject: ${subject}`);
+    console.log(`Body`, body);
 
     try {
       await SendEmail({

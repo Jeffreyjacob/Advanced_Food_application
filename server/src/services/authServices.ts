@@ -11,6 +11,9 @@ import { EmailVerificationHTMl } from '../utils/EmailTemplate/emailVerification'
 import { generateOtp } from '../utils/helper';
 import config from '../config/config';
 import { BaseUser } from '../models/baseUser';
+import { SaveRefreshToken } from '../middleware/authMiddleware';
+import { setTokenCookies } from '../utils/token.utils';
+import { Response } from 'express';
 
 export class AuthenticationServices {
   async registerCustomer({
@@ -31,7 +34,7 @@ export class AuthenticationServices {
       lastName: data.lastName,
       email: data.email,
       password: data.password,
-      country: data.password,
+      country: data.country,
       traceableLocation: {
         type: 'Point',
         coordinates: data.locationCord,
@@ -58,13 +61,17 @@ export class AuthenticationServices {
       url: EmailUrl,
     });
 
-    await emailQueue.add('emailverification', {
-      to: customer.email,
-      subject: 'Email verification',
-      body: html,
-      template: 'verifyEmail',
-    });
-
+    try {
+      const job = await emailQueue.add('emailverification', {
+        to: customer.email,
+        subject: 'Email verification',
+        body: html,
+        template: 'verifyEmail',
+      });
+    } catch (error) {
+      console.error('Error adding job to queue:', error);
+      throw new AppError('Failed to send verification email', 500);
+    }
     return {
       message:
         'User created, Please verify your email to finish sign up proccess',
@@ -138,6 +145,119 @@ export class AuthenticationServices {
 
     return {
       message: 'Otp has been sent',
+    };
+  }
+
+  async LoginCustomer({
+    res,
+    data,
+  }: {
+    res: Response;
+    data: ICustomerMutation['loginCustomer'];
+  }) {
+    const user = await Customer.findOne({
+      email: data.email,
+      isVerified: true,
+      role: RoleEnums.Customer,
+    });
+
+    if (!user) {
+      throw new AppError('Invalid credentials, try again', 400);
+    }
+
+    if (
+      user.accountLockedUntil &&
+      new Date(user.accountLockedUntil) > new Date()
+    ) {
+      const lockTimeRemaining = Math.ceil(
+        (new Date(user.accountLockedUntil).getTime() - new Date().getTime()) /
+          (1000 * 60)
+      );
+
+      throw new AppError(
+        `Your account is locked, try again in ${lockTimeRemaining} minutes`,
+        423
+      );
+    }
+
+    if (user.emailisVerified !== undefined && user.emailisVerified === false) {
+      throw new AppError(
+        'You have to verified your email, before you can login',
+        400
+      );
+    }
+
+    const comparedPassword = await user.comparePassword(data.password);
+
+    if (!comparedPassword) {
+      const maxAttempt = 5;
+      const currentAttempts = (user.loginAttempts || 0) + 1;
+
+      if (currentAttempts >= maxAttempt) {
+        const lockDuration = 30 * 60 * 1000;
+
+        await Customer.findOneAndUpdate(
+          {
+            email: data.email,
+          },
+          {
+            loginAttempts: currentAttempts,
+            accountLockedUntil: new Date(Date.now() + lockDuration),
+          }
+        );
+
+        throw new AppError(
+          'Your account is locked due Too many attempts, try again in 30 minutes',
+          423
+        );
+      } else {
+        await Customer.findOneAndUpdate(
+          {
+            email: data.email,
+          },
+          {
+            loginAttempts: currentAttempts,
+          }
+        );
+
+        const attemptLefts = maxAttempt - currentAttempts;
+
+        throw new AppError(
+          `Invalid credentials, you have ${attemptLefts} attempts lefts`,
+          400
+        );
+      }
+    }
+
+    const updateuser = await Customer.findOneAndUpdate(
+      {
+        email: data.email,
+      },
+      {
+        $set: {
+          isActive: true,
+        },
+        $unset: {
+          loginAttempts: 1,
+          accountLockedUntil: 1,
+        },
+      }
+    );
+
+    if (!updateuser) {
+      throw new AppError('Unable to update user, try again later', 400);
+    }
+
+    const token = user.generateAuthTokens();
+
+    const { accessToken, refreshToken } = token;
+
+    await SaveRefreshToken({ userId: user._id, refreshToken });
+
+    setTokenCookies(res, accessToken, refreshToken);
+
+    return {
+      message: 'Login successful!',
     };
   }
 }

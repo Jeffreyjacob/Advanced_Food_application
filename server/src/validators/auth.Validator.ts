@@ -46,3 +46,15 @@ export const resendOtpValidators = async (
 
   return validators.validateAsync(reqBody, { abortEarly: false });
 };
+
+export const loginCustomerValidators = async (
+  reqBody: ICustomerMutation['loginCustomer']
+): Promise<ICustomerMutation['loginCustomer']> => {
+  const validators: ObjectSchema<ICustomerMutation['loginCustomer']> =
+    Joi.object({
+      email: Joi.string().required(),
+      password: Joi.string().required(),
+    });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};

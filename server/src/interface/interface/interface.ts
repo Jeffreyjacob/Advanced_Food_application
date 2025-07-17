@@ -1,3 +1,5 @@
+import { IAddress } from '../models/models';
+
 export interface ICustomerMutation {
   registerCustomer: {
     firstName: string;
@@ -29,4 +31,24 @@ export interface IAuthenticationMutation {
   };
 }
 
+export interface IRestaurantMutation {
+  createRestaurant: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    locationCord: number[];
+    RestaurantAddress: IAddress;
+    RestaurantName: string;
+    country: string;
+    cuisineType: string;
+    description: string;
+  };
+  loginRestaurant: {
+    email: string;
+    password: string;
+  };
+}
+
+export interface IRestaurantOwnerQuery {}
 export interface ICustomerQuery {}

@@ -2,6 +2,7 @@ import Joi, { ObjectSchema } from 'joi';
 import {
   IAuthenticationMutation,
   ICustomerMutation,
+  IRestaurantMutation,
 } from '../interface/interface/interface';
 import { countriesISO } from '../utils/countryIso';
 
@@ -51,6 +52,48 @@ export const loginCustomerValidators = async (
   reqBody: ICustomerMutation['loginCustomer']
 ): Promise<ICustomerMutation['loginCustomer']> => {
   const validators: ObjectSchema<ICustomerMutation['loginCustomer']> =
+    Joi.object({
+      email: Joi.string().required(),
+      password: Joi.string().required(),
+    });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const registerRestaurantOwnerValidators = async (
+  reqBody: IRestaurantMutation['createRestaurant']
+): Promise<IRestaurantMutation['createRestaurant']> => {
+  const validators: ObjectSchema<IRestaurantMutation['createRestaurant']> =
+    Joi.object({
+      firstName: Joi.string().required(),
+      lastName: Joi.string().required(),
+      email: Joi.string().lowercase().required(),
+      password: Joi.string().required(),
+      locationCord: Joi.array().items(Joi.number().required()).required(),
+      RestaurantName: Joi.string().required(),
+      RestaurantAddress: Joi.object({
+        street: Joi.string().required(),
+        city: Joi.string().required(),
+        state: Joi.string().required(),
+        zipCode: Joi.string().required(),
+        country: Joi.string()
+          .valid(...validCountries)
+          .required(),
+      }).required(),
+      cuisineType: Joi.string().required(),
+      description: Joi.string().required(),
+      country: Joi.string()
+        .valid(...validCountries)
+        .required(),
+    });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const loginRestaurantOwnerValidators = async (
+  reqBody: IRestaurantMutation['loginRestaurant']
+): Promise<IRestaurantMutation['loginRestaurant']> => {
+  const validators: ObjectSchema<IRestaurantMutation['loginRestaurant']> =
     Joi.object({
       email: Joi.string().required(),
       password: Joi.string().required(),

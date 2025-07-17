@@ -3,6 +3,7 @@ import { RoleEnums } from '../interface/enums/enums';
 import {
   IAuthenticationMutation,
   ICustomerMutation,
+  IRestaurantMutation,
 } from '../interface/interface/interface';
 import { Customer } from '../models/customer';
 import { emailQueue } from '../queue/email/queue';
@@ -14,6 +15,9 @@ import { BaseUser } from '../models/baseUser';
 import { SaveRefreshToken } from '../middleware/authMiddleware';
 import { setTokenCookies } from '../utils/token.utils';
 import { Response } from 'express';
+import { RestaurantOwner } from '../models/restaurantOwner';
+import { Restaurant } from '../models/restaurant';
+import mongoose from 'mongoose';
 
 export class AuthenticationServices {
   async registerCustomer({
@@ -224,7 +228,7 @@ export class AuthenticationServices {
 
         throw new AppError(
           `Invalid credentials, you have ${attemptLefts} attempts lefts`,
-          400
+          423
         );
       }
     }
@@ -255,6 +259,190 @@ export class AuthenticationServices {
     await SaveRefreshToken({ userId: user._id, refreshToken });
 
     setTokenCookies(res, accessToken, refreshToken);
+
+    return {
+      message: 'Login successful!',
+    };
+  }
+
+  async registerRestaurantOwner({
+    data,
+  }: {
+    data: IRestaurantMutation['createRestaurant'];
+  }) {
+    const checkIfEmailAlreadyExist = await BaseUser.findOne({
+      email: data.email,
+    });
+
+    if (checkIfEmailAlreadyExist) {
+      throw new AppError('Email already exist', 400);
+    }
+
+    const createRestaurantOwner = await RestaurantOwner.create({
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      password: data.password,
+      country: data.country,
+      role: RoleEnums.Restaurant_Owner,
+    });
+
+    if (!createRestaurantOwner) {
+      throw new AppError('unable to create restaurant owner profile', 400);
+    }
+
+    const createRestaurant = await Restaurant.create({
+      name: data.RestaurantName,
+      owner: createRestaurantOwner._id,
+      address: data.RestaurantAddress,
+      traceableLocation: {
+        type: 'Point',
+        coordinates: data.locationCord,
+      },
+      description: data.description,
+      cuisineType: data.cuisineType,
+    });
+
+    if (!createRestaurant) {
+      throw new AppError('Unable to create restaurant profile', 400);
+    }
+
+    createRestaurantOwner.emailOtp = generateOtp();
+    createRestaurantOwner.emailisVerified = false;
+    createRestaurantOwner.ownedRestaurant = createRestaurant._id;
+
+    await createRestaurantOwner.save();
+
+    const formattedExpiry = dayjs(
+      createRestaurantOwner.emailOtpExpiresAt
+    ).format('hh:mm A, MMM DD YYYY');
+
+    const EmailUrl = `${config.frontendUrls.verifiyEmail}?email=${createRestaurantOwner.email}`;
+
+    const html = EmailVerificationHTMl({
+      firstname: createRestaurantOwner.firstName,
+      companyName: 'JetFoods',
+      expiryTime: formattedExpiry,
+      otp: createRestaurantOwner.emailOtp,
+      url: EmailUrl,
+    });
+
+    await emailQueue.add('emailverification', {
+      to: createRestaurantOwner.email,
+      subject: 'Email verification',
+      body: html,
+      template: 'verifyEmail',
+    });
+
+    return {
+      message:
+        'User created, Please verify your email to finish sign up proccess',
+    };
+  }
+
+  async loginRestaurantOwner({
+    res,
+    data,
+  }: {
+    res: Response;
+    data: IRestaurantMutation['loginRestaurant'];
+  }) {
+    const user = await RestaurantOwner.findOne({
+      email: data.email,
+      isVerified: true,
+      role: RoleEnums.Restaurant_Owner,
+    });
+
+    if (!user) {
+      throw new AppError('Invalid credentials,Try again!', 400);
+    }
+
+    if (user.emailisVerified !== undefined && user.emailisVerified === false) {
+      throw new AppError(
+        'Please verify your email, before you are able to login',
+        400
+      );
+    }
+
+    if (
+      user.accountLockedUntil &&
+      new Date(user.accountLockedUntil) > new Date()
+    ) {
+      const lockTimeRemaining =
+        (new Date(user.accountLockedUntil).getTime() - new Date().getTime()) /
+        (1000 * 60);
+
+      throw new AppError(
+        `Your account is locked try again in ${lockTimeRemaining} minutes`,
+        423
+      );
+    }
+
+    const comparePassword = await user.comparePassword(data.password);
+
+    if (!comparePassword) {
+      const maxAttempt = 5;
+      const currentAttempts = user.loginAttempts + 1;
+
+      if (currentAttempts >= maxAttempt) {
+        const lockDuration = 1000 * 60 * 60;
+
+        await RestaurantOwner.findOneAndUpdate(
+          {
+            email: data.email,
+          },
+          {
+            $set: {
+              loginAttempts: currentAttempts,
+              accountLockedUntil: new Date(Date.now() + lockDuration),
+            },
+          }
+        );
+
+        throw new AppError(
+          'Your account has been locked, Try again in 30 minutes',
+          423
+        );
+      } else {
+        await RestaurantOwner.findOneAndUpdate(
+          {
+            email: data.email,
+          },
+          {
+            $set: {
+              loginAttempts: currentAttempts,
+            },
+          }
+        );
+
+        const attemptLefts = maxAttempt - currentAttempts;
+        throw new AppError(
+          `Invalid credentials, you have ${attemptLefts} attempts lefts`,
+          400
+        );
+      }
+    }
+
+    const updatedUser = await RestaurantOwner.findByIdAndUpdate(user._id, {
+      $set: {
+        isActive: true,
+        lastLogin: new Date(),
+      },
+      $unset: {
+        loginAttempts: 1,
+        accountLockedUntil: 1,
+      },
+    });
+
+    if (!updatedUser) {
+      throw new AppError('Unable to update user at the moment', 400);
+    }
+
+    const { accessToken, refreshToken } = user.generateAuthTokens();
+
+    setTokenCookies(res, accessToken, refreshToken);
+
+    await SaveRefreshToken({ userId: user._id, refreshToken });
 
     return {
       message: 'Login successful!',

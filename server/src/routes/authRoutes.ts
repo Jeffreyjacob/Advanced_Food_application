@@ -18,4 +18,12 @@ authRoutes
   .route('/login/customer')
   .post(AuthenticationController.LoginCustomerController);
 
+authRoutes
+  .route('/register/restaurant')
+  .post(AuthenticationController.RegisterRestaurantOwnerController);
+
+authRoutes
+  .route('/login/restaurant')
+  .post(AuthenticationController.LoginRestaurantOwnerController);
+
 export default authRoutes;

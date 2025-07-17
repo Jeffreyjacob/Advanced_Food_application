@@ -7,7 +7,6 @@ const ResturantOwnerschema: Schema<IRestaurantOwner> = new Schema(
     ownedRestaurant: {
       type: Schema.Types.ObjectId,
       ref: 'restaurants',
-      required: true,
     },
   },
   {

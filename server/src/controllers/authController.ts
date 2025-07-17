@@ -3,7 +3,9 @@ import { AuthenticationServices } from '../services/authServices';
 import { AsycnHandler } from '../utils/asyncHandler';
 import {
   loginCustomerValidators,
+  loginRestaurantOwnerValidators,
   registerCustomerValidators,
+  registerRestaurantOwnerValidators,
   resendOtpValidators,
   verifyOtpValidators,
 } from '../validators/auth.Validator';
@@ -65,6 +67,39 @@ export class AuthenticationController {
         res,
         data: validatedBody,
       });
+
+      return res.status(200).json({
+        success: true,
+        data: result.message,
+      });
+    }
+  );
+
+  static RegisterRestaurantOwnerController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await registerRestaurantOwnerValidators(req.body);
+
+      const result =
+        await AuthenticationController.authService.registerRestaurantOwner({
+          data: validatedBody,
+        });
+
+      return res.status(201).json({
+        success: true,
+        data: result.message,
+      });
+    }
+  );
+
+  static LoginRestaurantOwnerController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await loginRestaurantOwnerValidators(req.body);
+
+      const result =
+        await AuthenticationController.authService.loginRestaurantOwner({
+          res,
+          data: validatedBody,
+        });
 
       return res.status(200).json({
         success: true,

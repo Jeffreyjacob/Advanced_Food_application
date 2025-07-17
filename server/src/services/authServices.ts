@@ -3,6 +3,7 @@ import { RoleEnums } from '../interface/enums/enums';
 import {
   IAuthenticationMutation,
   ICustomerMutation,
+  IDriverMutation,
   IRestaurantMutation,
 } from '../interface/interface/interface';
 import { Customer } from '../models/customer';
@@ -18,6 +19,7 @@ import { Response } from 'express';
 import { RestaurantOwner } from '../models/restaurantOwner';
 import { Restaurant } from '../models/restaurant';
 import mongoose from 'mongoose';
+import { Driver } from '../models/driver';
 
 export class AuthenticationServices {
   async registerCustomer({
@@ -385,7 +387,7 @@ export class AuthenticationServices {
       const currentAttempts = user.loginAttempts + 1;
 
       if (currentAttempts >= maxAttempt) {
-        const lockDuration = 1000 * 60 * 60;
+        const lockDuration = 1000 * 60 * 30;
 
         await RestaurantOwner.findOneAndUpdate(
           {
@@ -442,6 +444,168 @@ export class AuthenticationServices {
 
     setTokenCookies(res, accessToken, refreshToken);
 
+    await SaveRefreshToken({ userId: user._id, refreshToken });
+
+    return {
+      message: 'Login successful!',
+    };
+  }
+
+  async RegisterDriver({ data }: { data: IDriverMutation['registerDriver'] }) {
+    const checkIfEmailAlreadyExist = await Driver.findOne({
+      email: data.email,
+    });
+
+    if (checkIfEmailAlreadyExist) {
+      throw new AppError('Your Email already exist', 400);
+    }
+
+    const user = await Driver.create({
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      password: data.password,
+      role: RoleEnums.Driver,
+      country: data.country,
+      traceableLocation: {
+        type: 'Point',
+        coordinates: data.locationCoord,
+      },
+    });
+
+    user.emailOtp = generateOtp();
+    user.emailisVerified = false;
+
+    user.save();
+
+    const formattedExpiry = dayjs(user.emailOtpExpiresAt).format(
+      'hh:mm A, MMM DD YYYY'
+    );
+
+    const EmailUrl = `${config.frontendUrls.verifiyEmail}?email=${user.email}`;
+
+    const html = EmailVerificationHTMl({
+      firstname: user.firstName,
+      companyName: 'JetFoods',
+      expiryTime: formattedExpiry,
+      otp: user.emailOtp,
+      url: EmailUrl,
+    });
+
+    await emailQueue.add('emailverification', {
+      to: user.email,
+      subject: 'Email verification',
+      body: html,
+      template: 'verifyEmail',
+    });
+
+    return {
+      message:
+        'User created, Please verify your email to finish sign up proccess',
+    };
+  }
+
+  async LoginDriver({
+    res,
+    data,
+  }: {
+    res: Response;
+    data: IDriverMutation['loginDriver'];
+  }) {
+    const user = await Driver.findOne({
+      email: data.email,
+      isVerified: true,
+      role: RoleEnums.Driver,
+    });
+
+    if (!user) {
+      throw new AppError('Invalid credentials, Try again!', 400);
+    }
+
+    if (user.emailisVerified !== undefined && user.emailisVerified === false) {
+      throw new AppError(
+        'Please verify your email, before you are able to login',
+        400
+      );
+    }
+
+    if (
+      user.accountLockedUntil &&
+      new Date(user.accountLockedUntil) > new Date()
+    ) {
+      const lockTimeRemaining =
+        (new Date(user.accountLockedUntil).getTime() - new Date().getTime()) /
+        (1000 * 60);
+
+      throw new AppError(
+        `Your account is locked try again in ${lockTimeRemaining} minutes`,
+        423
+      );
+    }
+
+    const comparedPassword = await user.comparePassword(data.password);
+
+    if (!comparedPassword) {
+      const currentAttempts = user.loginAttempts + 1;
+      const maxAttempts = 5;
+
+      if (currentAttempts >= maxAttempts) {
+        const lockDuration = 1000 * 60 * 30;
+
+        await Driver.findOneAndUpdate(
+          {
+            email: data.email,
+          },
+          {
+            $set: {
+              loginAttempts: currentAttempts,
+              accountLockedUntil: new Date(Date.now() + lockDuration),
+            },
+          }
+        );
+
+        throw new AppError(
+          'Your account has been locked, Try again in 30 minutes',
+          423
+        );
+      } else {
+        const attemptLefts = maxAttempts - currentAttempts;
+
+        await Driver.findOneAndUpdate(
+          {
+            email: data.email,
+          },
+          {
+            $set: {
+              loginAttempts: currentAttempts,
+            },
+          }
+        );
+
+        throw new AppError(
+          `Invalid credentials, you have ${attemptLefts} attempts lefts`,
+          400
+        );
+      }
+    }
+
+    const updatedUser = await Driver.findByIdAndUpdate(user._id, {
+      $set: {
+        isActive: true,
+        lastLogin: new Date(),
+      },
+      $unset: {
+        loginAttempts: 1,
+        accountLockedUntil: 1,
+      },
+    });
+
+    if (!updatedUser) {
+      throw new AppError('Unable to update user, try again', 400);
+    }
+
+    const { accessToken, refreshToken } = user.generateAuthTokens();
+    setTokenCookies(res, accessToken, refreshToken);
     await SaveRefreshToken({ userId: user._id, refreshToken });
 
     return {

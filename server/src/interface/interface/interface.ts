@@ -50,5 +50,21 @@ export interface IRestaurantMutation {
   };
 }
 
+export interface IDriverMutation {
+  registerDriver: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    country: string;
+    locationCoord: number[];
+  };
+  loginDriver: {
+    email: string;
+    password: string;
+  };
+}
+
+export interface IDriverQuery {}
 export interface IRestaurantOwnerQuery {}
 export interface ICustomerQuery {}

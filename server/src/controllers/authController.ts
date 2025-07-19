@@ -198,4 +198,17 @@ export class AuthenticationController {
       });
     }
   );
+
+  static AuthUserController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const result = await AuthenticationController.authService.AuthUser({
+        req,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    }
+  );
 }

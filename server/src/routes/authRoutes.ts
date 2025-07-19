@@ -51,4 +51,6 @@ authRoutes
   .route('/logout')
   .post(Protect, AuthenticationController.LogOutController);
 
+authRoutes.route('/').get(Protect, AuthenticationController.AuthUserController);
+
 export default authRoutes;

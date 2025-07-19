@@ -26,6 +26,8 @@ import { Driver } from '../models/driver';
 import bcrypt from 'bcryptjs';
 import { ForgetPasswordHTML } from '../utils/EmailTemplate/passwordReset';
 import { Tokens } from '../models/token';
+import mongoose from 'mongoose';
+import { IBaseUser } from '../interface/models/models';
 
 export class AuthenticationServices {
   async registerCustomer({
@@ -735,5 +737,17 @@ export class AuthenticationServices {
     return {
       message: 'User has been logged out',
     };
+  }
+
+  async AuthUser({ req }: { req: Request }): Promise<IBaseUser> {
+    const user = await BaseUser.findOne({
+      _id: new mongoose.Types.ObjectId(req.user._id),
+    });
+
+    if (!user) {
+      throw new AppError('User was not found', 404);
+    }
+
+    return user;
   }
 }

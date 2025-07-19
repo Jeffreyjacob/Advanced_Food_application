@@ -17,10 +17,6 @@ const emailWorker = new Worker(
   async (job: Job<EmailJobData>) => {
     const { to, subject, body, template, data } = job.data;
 
-    console.log(`Processing email job ${job.id}`);
-    console.log(`Sending email to: ${to}`);
-    console.log(`Subject: ${subject}`);
-
     try {
       await SendEmail({
         to,

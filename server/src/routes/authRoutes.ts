@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AuthenticationController } from '../controllers/authController';
+import { Protect } from '../middleware/authMiddleware';
 
 const authRoutes = Router();
 
@@ -33,5 +34,21 @@ authRoutes
 authRoutes
   .route('/login/driver')
   .post(AuthenticationController.LoginDriverController);
+
+authRoutes
+  .route('/forgetPassword')
+  .post(AuthenticationController.ForgetPasswordController);
+
+authRoutes
+  .route('/resetPassword')
+  .post(AuthenticationController.ResetPasswordController);
+
+authRoutes
+  .route('/refreshAccessToken')
+  .post(Protect, AuthenticationController.RefreshAccessTokenController);
+
+authRoutes
+  .route('/logout')
+  .post(Protect, AuthenticationController.LogOutController);
 
 export default authRoutes;

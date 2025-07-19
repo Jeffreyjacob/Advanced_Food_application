@@ -28,7 +28,7 @@ export const Protect = async (
     const accessToken = req.cookies.accessToken;
 
     if (!accessToken) {
-      throw new AppError('invalid or expired token', 401);
+      throw new AppError('invalid or expired token, Please log in again', 401);
     }
 
     const decoded = VerifyAccessToken(accessToken);

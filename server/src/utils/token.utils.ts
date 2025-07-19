@@ -73,7 +73,7 @@ export const setTokenCookies = (
 };
 
 export const ClearTokenCookies = (res: Response): void => {
-  res.cookie('accessToken', '', {
+  res.clearCookie('accessToken', {
     httpOnly: config.env === 'production' ? true : false,
     sameSite: 'strict',
     secure: config.env === 'production' ? true : false,
@@ -81,7 +81,7 @@ export const ClearTokenCookies = (res: Response): void => {
     path: '/',
   });
 
-  res.cookie('refreshToken', '', {
+  res.clearCookie('refreshToken', {
     httpOnly: config.env === 'production' ? true : false,
     sameSite: 'strict',
     secure: config.env === 'production' ? true : false,

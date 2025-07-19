@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { AuthenticationServices } from '../services/authServices';
 import { AsycnHandler } from '../utils/asyncHandler';
 import {
+  forgetPasswordValidators,
   loginCustomerValidators,
   loginDriverValidators,
   loginRestaurantOwnerValidators,
@@ -9,8 +10,10 @@ import {
   registerDriverValidators,
   registerRestaurantOwnerValidators,
   resendOtpValidators,
+  resetPasswordValidators,
   verifyOtpValidators,
 } from '../validators/auth.Validator';
+import { RefreshAccessToken } from '../middleware/authMiddleware';
 
 export class AuthenticationController {
   private static authService = new AuthenticationServices();
@@ -132,6 +135,61 @@ export class AuthenticationController {
       const result = await AuthenticationController.authService.LoginDriver({
         res,
         data: validatedBody,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: result.message,
+      });
+    }
+  );
+
+  static ForgetPasswordController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await forgetPasswordValidators(req.body);
+
+      const result = await AuthenticationController.authService.ForgetPassword({
+        data: validatedBody,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: result.message,
+      });
+    }
+  );
+
+  static ResetPasswordController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await resetPasswordValidators(req.body);
+
+      const result = await AuthenticationController.authService.ResetPassword({
+        data: validatedBody,
+      });
+
+      return res.status(200).json({
+        success: true,
+        data: result.message,
+      });
+    }
+  );
+
+  static RefreshAccessTokenController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      await RefreshAccessToken(req, res, next);
+
+      return res.status(200).json({
+        success: true,
+        data: 'Your token has been refreshed',
+      });
+    }
+  );
+
+  static LogOutController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const result = await AuthenticationController.authService.SignOut({
+        res,
+        req,
       });
 
       return res.status(200).json({

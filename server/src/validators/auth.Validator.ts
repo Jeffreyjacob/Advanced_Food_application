@@ -130,3 +130,26 @@ export const loginDriverValidators = async (
 
   return validator.validateAsync(reqBody, { abortEarly: false });
 };
+
+export const forgetPasswordValidators = async (
+  reqBody: IAuthenticationMutation['forgetPassword']
+): Promise<IAuthenticationMutation['forgetPassword']> => {
+  const validators: ObjectSchema<IAuthenticationMutation['forgetPassword']> =
+    Joi.object({
+      email: Joi.string().required(),
+    });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const resetPasswordValidators = async (
+  reqBody: IAuthenticationMutation['resetPassword']
+): Promise<IAuthenticationMutation['resetPassword']> => {
+  const validators: ObjectSchema<IAuthenticationMutation['resetPassword']> =
+    Joi.object({
+      token: Joi.string().required(),
+      password: Joi.string().required(),
+    });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};

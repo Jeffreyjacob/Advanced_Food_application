@@ -13,13 +13,19 @@ import { EmailVerificationHTMl } from '../utils/EmailTemplate/emailVerification'
 import { generateOtp } from '../utils/helper';
 import config from '../config/config';
 import { BaseUser } from '../models/baseUser';
-import { SaveRefreshToken } from '../middleware/authMiddleware';
-import { setTokenCookies } from '../utils/token.utils';
-import { Response } from 'express';
+import {
+  RefreshAccessToken,
+  SaveRefreshToken,
+} from '../middleware/authMiddleware';
+import { ClearTokenCookies, setTokenCookies } from '../utils/token.utils';
+import { Request, Response } from 'express';
 import { RestaurantOwner } from '../models/restaurantOwner';
 import { Restaurant } from '../models/restaurant';
-import mongoose from 'mongoose';
+import crypto from 'crypto';
 import { Driver } from '../models/driver';
+import bcrypt from 'bcryptjs';
+import { ForgetPasswordHTML } from '../utils/EmailTemplate/passwordReset';
+import { Tokens } from '../models/token';
 
 export class AuthenticationServices {
   async registerCustomer({
@@ -232,7 +238,7 @@ export class AuthenticationServices {
 
         throw new AppError(
           `Invalid credentials, you have ${attemptLefts} attempts lefts`,
-          423
+          400
         );
       }
     }
@@ -614,6 +620,120 @@ export class AuthenticationServices {
 
     return {
       message: 'Login successful!',
+    };
+  }
+
+  async ForgetPassword({
+    data,
+  }: {
+    data: IAuthenticationMutation['forgetPassword'];
+  }) {
+    const user = await BaseUser.findOne({
+      email: data.email,
+    });
+
+    if (!user) {
+      throw new AppError("user with this email can't be find", 404);
+    }
+
+    user.passwordReset.token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setTime(expiresAt.getTime() + 30 * 60 * 100);
+    user.passwordReset.expiresAt = expiresAt;
+
+    await user.save();
+
+    const url = `${config.frontendUrls.passwordReset}?token=${user.passwordReset.token}`;
+
+    const formattedExpiry = dayjs(user.passwordReset.expiresAt).format(
+      'hh:mm A, MMM DD YYYY'
+    );
+
+    const html = ForgetPasswordHTML({
+      firstName: user.firstName,
+      resetUrl: url,
+      expiryTime: formattedExpiry,
+    });
+
+    await emailQueue.add('forgetPassword', {
+      to: user.email,
+      subject: 'Forget Password',
+      body: html,
+      template: 'forgetPassword',
+    });
+
+    return {
+      message: 'A link has been sent to your email to reset your password',
+    };
+  }
+
+  async ResetPassword({
+    data,
+  }: {
+    data: IAuthenticationMutation['resetPassword'];
+  }) {
+    const user = await BaseUser.findOne({
+      'passwordReset.token': data.token,
+      'passwordReset.expiresAt': { $gt: new Date() },
+    });
+
+    if (!user) {
+      throw new AppError('Invalid or expired token', 400);
+    }
+
+    const hashPassword = await bcrypt.hash(data.password, 10);
+
+    const updatedUser = await BaseUser.findOneAndUpdate(
+      {
+        _id: user._id,
+      },
+      {
+        $set: {
+          password: hashPassword,
+        },
+        $unset: {
+          'passwordReset.token': 1,
+          'passwordReset.expiresAt': 1,
+        },
+      }
+    );
+
+    if (!updatedUser) {
+      throw new AppError('Unable to update password', 400);
+    }
+
+    return {
+      message: 'Your password has been reset',
+    };
+  }
+
+  async SignOut({ req, res }: { req: Request; res: Response }) {
+    const user = await BaseUser.findByIdAndUpdate(req.user._id, {
+      $set: {
+        isActive: false,
+      },
+    });
+
+    if (!user) {
+      throw new AppError('Unable to log out at the moment', 400);
+    }
+
+    const refresh = req.cookies.refreshToken;
+    if (refresh) {
+      await Tokens.updateMany(
+        {
+          token: refresh,
+        },
+        {
+          isRevoked: true,
+        }
+      );
+    }
+
+    ClearTokenCookies(res);
+
+    return {
+      message: 'User has been logged out',
     };
   }
 }

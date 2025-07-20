@@ -29,7 +29,7 @@ export class AuthenticationController {
 
       return res.status(201).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -44,7 +44,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -59,7 +59,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -75,7 +75,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -91,7 +91,7 @@ export class AuthenticationController {
 
       return res.status(201).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -108,7 +108,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -123,7 +123,7 @@ export class AuthenticationController {
 
       return res.status(201).json({
         succes: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -139,7 +139,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -154,7 +154,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -169,7 +169,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -180,7 +180,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: 'Your token has been refreshed',
+        message: 'Your token has been refreshed',
       });
     }
   );
@@ -194,7 +194,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result.message,
+        message: result.message,
       });
     }
   );
@@ -207,7 +207,7 @@ export class AuthenticationController {
 
       return res.status(200).json({
         success: true,
-        data: result,
+        message: result,
       });
     }
   );

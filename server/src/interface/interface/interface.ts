@@ -13,6 +13,31 @@ export interface ICustomerMutation {
     email: string;
     password: string;
   };
+  updateCustomer: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    avatar: string;
+    location: string;
+    country: string;
+    locationCoord: [number];
+  };
+
+  addAddress: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+
+  updateAddress: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
 }
 
 export interface IAuthenticationMutation {

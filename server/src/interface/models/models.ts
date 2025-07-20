@@ -34,7 +34,8 @@ export interface IBaseUser extends Document {
   generateAuthTokens(): { accessToken: string; refreshToken: string };
 }
 
-export interface IAddress {
+export interface IAddress extends Document {
+  _id: mongoose.Types.ObjectId;
   street: string;
   city: string;
   state: string;

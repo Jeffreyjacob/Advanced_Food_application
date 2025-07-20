@@ -10,6 +10,7 @@ import { ErrorHandler } from './middleware/errorhandler';
 import { serverAdapter } from './BullBoard';
 import { emailWorker } from './queue/email/worker';
 import authRoutes from './routes/authRoutes';
+import customerRoutes from './routes/customerRoutes';
 
 const limiter = rateLimit({
   windowMs: config.security.rateLimit.windowMs,
@@ -60,6 +61,7 @@ const StartServer = async () => {
 
   app.use(`${config.apiPrefix}/admin/queues`, serverAdapter.getRouter());
   app.use(`${config.apiPrefix}/auth`, authRoutes);
+  app.use(`${config.apiPrefix}/customer`, customerRoutes);
 
   app.use(ErrorHandler);
 

@@ -1,3 +1,4 @@
+import { RestaurantDocumentTypeEnum } from '../enums/enums';
 import { IAddress } from '../models/models';
 
 export interface ICustomerMutation {
@@ -73,6 +74,24 @@ export interface IRestaurantMutation {
     email: string;
     password: string;
   };
+  updateRestaurant: {
+    name?: string;
+    address?: IAddress;
+    cuisineType?: string;
+    description?: string;
+    locationCoord?: number[];
+    logo?: string;
+  };
+  addRestaurantDocument: {
+    documentType: RestaurantDocumentTypeEnum;
+    url: string;
+  };
+
+  updateRestaurantDocument: {
+    documentType: RestaurantDocumentTypeEnum;
+    url?: string;
+    rejectionReason?: string;
+  };
 }
 
 export interface IDriverMutation {
@@ -88,6 +107,14 @@ export interface IDriverMutation {
     email: string;
     password: string;
   };
+}
+
+export interface IVerifyDocument {
+  isValid: boolean;
+  expiryDate: string;
+  extractedData: { [key: string]: string };
+  issues: string[];
+  score: 0;
 }
 
 export interface IDriverQuery {}

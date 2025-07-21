@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Business License - Chicken Republic</title>
+    <style>
+      body {
+        font-family: 'Times New Roman', serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px;
+        background: #f5f5f5;
+      }
+      .document {
+        background: white;
+        padding: 40px;
+        border: 3px solid #2c3e50;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        border-bottom: 2px solid #2c3e50;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+      }
+      .seal {
+        width: 80px;
+        height: 80px;
+        border: 3px solid #2c3e50;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        font-weight: bold;
+        font-size: 12px;
+      }
+      .title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 10px 0;
+      }
+      .subtitle {
+        font-size: 18px;
+        color: #7f8c8d;
+      }
+      .content {
+        line-height: 1.8;
+        font-size: 16px;
+      }
+      .field {
+        margin: 15px 0;
+        display: flex;
+        align-items: baseline;
+      }
+      .label {
+        font-weight: bold;
+        min-width: 180px;
+        color: #2c3e50;
+      }
+      .value {
+        flex: 1;
+        border-bottom: 1px solid #bdc3c7;
+        padding-bottom: 2px;
+        margin-left: 10px;
+      }
+      .important {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+      .footer {
+        margin-top: 40px;
+        text-align: center;
+        border-top: 1px solid #bdc3c7;
+        padding-top: 20px;
+      }
+      .signature-section {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+      }
+      .signature {
+        text-align: center;
+        flex: 1;
+        margin: 0 20px;
+      }
+      .signature-line {
+        border-bottom: 2px solid #2c3e50;
+        width: 200px;
+        margin: 20px auto 10px;
+      }
+      .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 60px;
+        color: rgba(52, 152, 219, 0.1);
+        font-weight: bold;
+        z-index: -1;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="document">
+      <div class="watermark">SAMPLE</div>
+
+      <div class="header">
+        <div class="seal">CITY<br />SEAL</div>
+        <div class="title">CITY OF LAGOS</div>
+        <div class="subtitle">Department of Business Affairs</div>
+        <div class="subtitle">BUSINESS LICENSE</div>
+      </div>
+
+      <div class="content">
+        <p><strong>License Number:</strong> BL-2024-CR-001234</p>
+
+        <div class="important">
+          <strong
+            >This certifies that the business entity described below is hereby
+            licensed to conduct business within the City of Lagos
+            jurisdiction.</strong
+          >
+        </div>
+
+        <div class="field">
+          <div class="label">Business Name:</div>
+          <div class="value">CHICKEN REPUBLIC RESTAURANT</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Business Type:</div>
+          <div class="value">Food Service Establishment</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Business Address:</div>
+          <div class="value">123 Victoria Island Road, Lagos, Nigeria</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Owner/Manager:</div>
+          <div class="value">John Adebayo Ogundimu</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Contact Phone:</div>
+          <div class="value">+234-901-234-5678</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Issue Date:</div>
+          <div class="value">January 15, 2025</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Expiry Date:</div>
+          <div class="value">January 14, 2026</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Issued By:</div>
+          <div class="value">Lagos State Business Registration Authority</div>
+        </div>
+
+        <div class="important">
+          <strong>CONDITIONS:</strong><br />
+          • This license is non-transferable<br />
+          • Must be displayed prominently at business location<br />
+          • Subject to all local health and safety regulations<br />
+          • Must be renewed annually before expiration
+        </div>
+
+        <div class="signature-section">
+          <div class="signature">
+            <div class="signature-line"></div>
+            <strong>Director of Business Affairs</strong><br />
+            Lagos State Government
+          </div>
+          <div class="signature">
+            <div class="signature-line"></div>
+            <strong>License Officer</strong><br />
+            Date: 15/01/2025
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>
+          <strong
+            >For verification, contact: Lagos Business Registry at
+            +234-1-234-5678</strong
+          >
+        </p>
+        <p style="font-size: 12px; color: #7f8c8d">
+          This document is valid only with official seal and signatures. Any
+          alterations void this license.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Add current date for realistic testing
+      document.addEventListener('DOMContentLoaded', function () {
+        // You can modify dates here for testing different scenarios
+        console.log('Sample Business License loaded for testing');
+      });
+    </script>
+  </body>
+</html>

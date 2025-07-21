@@ -36,6 +36,9 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
       type: String,
       required: true,
     },
+    logo: {
+      type: String,
+    },
     description: {
       type: String,
       trim: true,
@@ -55,27 +58,27 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
         status: {
           type: String,
           enum: DocumentStatusEnum,
-          default: DocumentStatusEnum.Pending,
         },
         rejectionReason: String,
+        expiryDate: Date,
       },
       taxCeritificate: {
         url: String,
         status: {
           type: String,
           enum: DocumentStatusEnum,
-          default: DocumentStatusEnum.Pending,
         },
         rejectionReason: String,
+        expiryDate: Date,
       },
       foodHandlerPermit: {
         url: String,
         status: {
           type: String,
           enum: DocumentStatusEnum,
-          default: DocumentStatusEnum.Pending,
         },
         rejectionReason: String,
+        expiryDate: Date,
       },
     },
     walletSetup: {

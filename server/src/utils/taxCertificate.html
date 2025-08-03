@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tax Certificate - Chicken Republic</title>
+    <style>
+      body {
+        font-family: 'Georgia', serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px;
+        background: #f0f2f5;
+      }
+      .document {
+        background: white;
+        padding: 50px;
+        border: 4px solid #dc3545;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        position: relative;
+      }
+      .header {
+        text-align: center;
+        border-bottom: 3px double #dc3545;
+        padding-bottom: 25px;
+        margin-bottom: 35px;
+        background: linear-gradient(to bottom, #fff5f5, #ffffff);
+        margin: -50px -50px 35px -50px;
+        padding: 50px;
+      }
+      .emblem {
+        width: 120px;
+        height: 120px;
+        border: 4px solid #dc3545;
+        border-radius: 10px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        text-align: center;
+      }
+      .title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #721c24;
+        margin: 15px 0;
+        text-transform: uppercase;
+      }
+      .subtitle {
+        font-size: 20px;
+        color: #6c757d;
+        font-style: italic;
+      }
+      .cert-title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #dc3545;
+        background: #fff5f5;
+        padding: 20px;
+        border: 2px solid #dc3545;
+        margin: 30px 0;
+        text-transform: uppercase;
+      }
+      .content {
+        line-height: 2;
+        font-size: 16px;
+      }
+      .tax-details {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 25px;
+        margin: 25px 0;
+        border-radius: 5px;
+      }
+      .detail-row {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 20px;
+        margin: 15px 0;
+        align-items: baseline;
+      }
+      .label {
+        font-weight: bold;
+        color: #721c24;
+        text-transform: uppercase;
+        font-size: 14px;
+      }
+      .value {
+        border-bottom: 2px solid #dc3545;
+        padding-bottom: 5px;
+        font-size: 16px;
+        min-height: 24px;
+      }
+      .amount-section {
+        background: #fffbf0;
+        border: 2px solid #ffc107;
+        padding: 20px;
+        margin: 25px 0;
+        border-radius: 8px;
+      }
+      .amount-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 30px;
+        align-items: center;
+      }
+      .amount-details {
+        font-size: 14px;
+      }
+      .total-amount {
+        text-align: right;
+        font-size: 24px;
+        font-weight: bold;
+        color: #d63384;
+      }
+      .validity-section {
+        background: #d1ecf1;
+        border: 2px solid #bee5eb;
+        padding: 20px;
+        margin: 25px 0;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .validity-section h4 {
+        color: #0c5460;
+        margin-top: 0;
+        font-size: 18px;
+      }
+      .date-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 15px;
+      }
+      .date-box {
+        text-align: center;
+        padding: 15px;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid #bee5eb;
+      }
+      .date-box .label {
+        font-size: 12px;
+        color: #6c757d;
+      }
+      .date-box .date {
+        font-size: 18px;
+        font-weight: bold;
+        color: #0c5460;
+      }
+      .signature-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+        margin-top: 50px;
+        border-top: 2px solid #dee2e6;
+        padding-top: 30px;
+      }
+      .signature-box {
+        text-align: center;
+      }
+      .signature-line {
+        border-bottom: 3px solid #721c24;
+        width: 200px;
+        margin: 30px auto 15px;
+      }
+      .signature-text {
+        font-size: 14px;
+        font-weight: bold;
+        color: #721c24;
+      }
+      .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-30deg);
+        font-size: 100px;
+        color: rgba(220, 53, 69, 0.05);
+        font-weight: bold;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .content-wrapper {
+        position: relative;
+        z-index: 1;
+      }
+      .reference-number {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #721c24;
+        color: white;
+        padding: 10px 15px;
+        font-weight: bold;
+        font-size: 12px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="document">
+      <div class="watermark">CERTIFIED</div>
+      <div class="reference-number">REF: TAX/2024/001234</div>
+
+      <div class="content-wrapper">
+        <div class="header">
+          <div class="emblem">
+            FEDERAL<br />INLAND<br />REVENUE<br />SERVICE
+          </div>
+          <div class="title">Federal Republic of Nigeria</div>
+          <div class="subtitle">Federal Inland Revenue Service (FIRS)</div>
+        </div>
+
+        <div class="cert-title">Tax Clearance Certificate</div>
+
+        <p
+          style="
+            text-align: center;
+            font-size: 18px;
+            margin: 30px 0;
+            font-style: italic;
+          "
+        >
+          This is to certify that the taxpayer mentioned below has fulfilled all
+          tax obligations for the specified period and is hereby granted this
+          Tax Clearance Certificate.
+        </p>
+
+        <div class="tax-details">
+          <div class="detail-row">
+            <div class="label">Taxpayer Name:</div>
+            <div class="value">CHICKEN REPUBLIC NIGERIA LIMITED</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="label">Tax Identification Number:</div>
+            <div class="value">12345678-0001</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="label">Corporate Registration:</div>
+            <div class="value">RC 987654321</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="label">Business Address:</div>
+            <div class="value">123 Victoria Island Road, Lagos, Nigeria</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="label">Nature of Business:</div>
+            <div class="value">Restaurant and Food Services</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="label">Tax Office:</div>
+            <div class="value">Lagos Island Tax Office</div>
+          </div>
+        </div>
+
+        <div class="amount-section">
+          <div class="amount-grid">
+            <div class="amount-details">
+              <h4 style="margin: 0 0 10px 0; color: #d63384">
+                Tax Assessment Details:
+              </h4>
+              <p>
+                Company Income Tax (CIT): ₦2,450,000.00<br />
+                Value Added Tax (VAT): ₦875,500.00<br />
+                Pay As You Earn (PAYE): ₦1,234,750.00<br />
+                Withholding Tax: ₦456,200.00
+              </p>
+            </div>
+            <div class="total-amount">
+              Total Paid:<br />
+              ₦5,016,450.00
+            </div>
+          </div>
+        </div>
+
+        <div class="validity-section">
+          <h4>Certificate Validity Period</h4>
+          <div class="date-grid">
+            <div class="date-box">
+              <div class="label">ISSUED ON</div>
+              <div class="date">15 JANUARY 2025</div>
+            </div>
+            <div class="date-box">
+              <div class="label">EXPIRES ON</div>
+              <div class="date">14 JANUARY 2026</div>
+            </div>
+          </div>
+          <p style="margin: 15px 0 0 0; font-size: 14px; color: #6c757d">
+            <strong>Tax Year Covered:</strong> 2023 Assessment Year
+          </p>
+        </div>
+
+        <div
+          style="
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+          "
+        >
+          <h4 style="color: #856404; margin-top: 0">Important Notes:</h4>
+          <ul style="margin: 0; color: #856404">
+            <li>This certificate is valid for 12 months from date of issue</li>
+            <li>Must be renewed annually upon payment of current year taxes</li>
+            <li>
+              Required for government contracts, bank transactions, and business
+              registrations
+            </li>
+            <li>Any fraudulent use of this certificate is punishable by law</li>
+          </ul>
+        </div>
+
+        <div class="signature-section">
+          <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="signature-text">
+              MR. ADEBAYO OLUMIDE<br />
+              Area Tax Controller<br />
+              Lagos Island Tax Office
+            </div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="signature-text">
+              OFFICIAL SEAL & DATE<br />
+              15 JANUARY 2025<br />
+              FIRS Lagos
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+          "
+        >
+          <p>
+            <strong>For verification, visit:</strong> www.firs.gov.ng or call
+            +234-700-CALL-FIRS
+          </p>
+          <p>
+            This certificate is computer generated and valid without signature
+            when verified online
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

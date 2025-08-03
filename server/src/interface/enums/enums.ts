@@ -30,6 +30,7 @@ export enum DocumentStatusEnum {
   Pending = 'Pending',
   Rejected = 'Rejected',
   Approved = 'Approved',
+  Expired = 'Expired',
 }
 
 export enum VehicleTypeEnum {
@@ -50,4 +51,10 @@ export enum StripeAccountStatusEnum {
   restricted = 'restricted',
   enabled = 'enabled',
   disabled = 'disabled',
+}
+
+export enum RestaurantDocumentTypeEnum {
+  businessLicense = 'businessLicense',
+  taxCeritificate = 'taxCeritificate',
+  foodHandlerPermit = 'foodHandlerPermit',
 }

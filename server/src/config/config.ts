@@ -80,4 +80,8 @@ export default {
     },
     concurrency: parseInt(process.env.BULLMQ_CONCURRENCY || '10', 10),
   },
+  OCR: {
+    API_KEY: process.env.OCRAPIKEY!,
+    URL: process.env.OCR_URL,
+  },
 };

@@ -67,6 +67,7 @@ export interface IRestaurant extends Document {
     type: string;
     coordinates: number[];
   };
+  logo: string;
   cuisineType: string;
   description: string;
   stripeAccountId?: string;
@@ -76,16 +77,25 @@ export interface IRestaurant extends Document {
       url: string;
       status: DocumentStatusEnum;
       rejectionReason?: string;
+      expiryDate?: Date;
+      expiryJobId?: string;
+      reminderJobId?: string;
     };
     taxCeritificate: {
       url: string;
       status: DocumentStatusEnum;
       rejectionReason?: string;
+      expiryDate?: Date;
+      expiryJobId?: string;
+      reminderJobId?: string;
     };
     foodHandlerPermit: {
       url: string;
       status: DocumentStatusEnum;
       rejectionReason?: string;
+      expiryDate?: Date;
+      expiryJobId?: string;
+      reminderJobId?: string;
     };
   };
   walletSetup: Boolean;

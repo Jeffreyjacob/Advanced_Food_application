@@ -11,6 +11,8 @@ import { serverAdapter } from './BullBoard';
 import { emailWorker } from './queue/email/worker';
 import authRoutes from './routes/authRoutes';
 import customerRoutes from './routes/customerRoutes';
+import { Workers } from './worker';
+import restaurantRoutes from './routes/restaurantRoutes';
 
 const limiter = rateLimit({
   windowMs: config.security.rateLimit.windowMs,
@@ -51,17 +53,12 @@ const StartServer = async () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  emailWorker.on('ready', () => {
-    console.log('Email worker is ready');
-  });
-
-  emailWorker.on('error', (err) => {
-    console.error('Email worker error:', err);
-  });
+  await Workers();
 
   app.use(`${config.apiPrefix}/admin/queues`, serverAdapter.getRouter());
   app.use(`${config.apiPrefix}/auth`, authRoutes);
   app.use(`${config.apiPrefix}/customer`, customerRoutes);
+  app.use(`${config.apiPrefix}/restaurant`, restaurantRoutes);
 
   app.use(ErrorHandler);
 

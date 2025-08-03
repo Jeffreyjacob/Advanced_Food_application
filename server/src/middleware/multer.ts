@@ -16,6 +16,8 @@ const fileFilter = (
     'image/gif',
     'image/webp',
     'image/avif',
+    'application/pdf',
+    'application/msword',
   ];
 
   if (allowMimeTypes.includes(file.mimetype)) {

@@ -45,7 +45,7 @@ authRoutes
 
 authRoutes
   .route('/refreshAccessToken')
-  .post(Protect, AuthenticationController.RefreshAccessTokenController);
+  .post(AuthenticationController.RefreshAccessTokenController);
 
 authRoutes
   .route('/logout')

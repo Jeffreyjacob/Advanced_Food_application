@@ -78,18 +78,24 @@ export interface IRestaurant extends Document {
       status: DocumentStatusEnum;
       rejectionReason?: string;
       expiryDate?: Date;
+      expiryJobId?: string;
+      reminderJobId?: string;
     };
     taxCeritificate: {
       url: string;
       status: DocumentStatusEnum;
       rejectionReason?: string;
       expiryDate?: Date;
+      expiryJobId?: string;
+      reminderJobId?: string;
     };
     foodHandlerPermit: {
       url: string;
       status: DocumentStatusEnum;
       rejectionReason?: string;
       expiryDate?: Date;
+      expiryJobId?: string;
+      reminderJobId?: string;
     };
   };
   walletSetup: Boolean;

@@ -3,9 +3,10 @@ import { RestaurantServies } from '../services/resturantServices';
 import { AsycnHandler } from '../utils/asyncHandler';
 import {
   addRestaurantDocumentValidators,
+  updateRestaurantDocumentValidators,
   updateRestaurantValidators,
 } from '../validators/restaurant.validator';
-import { uploadImage } from '../utils/uploadImages';
+import { uploadDocumentToCloudinary, uploadImage } from '../utils/uploadImages';
 import { RestaurantDocumentTypeEnum } from '../interface/enums/enums';
 
 export class RestaurantController {
@@ -46,13 +47,17 @@ export class RestaurantController {
     }
   );
 
-  static addRestaurantController = AsycnHandler(
+  static addRestaurantDocumentController = AsycnHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       let url: string = '';
       if (req.file) {
-        const imageUrl = await uploadImage(req.file as Express.Multer.File);
+        const imageUrl = await uploadDocumentToCloudinary(
+          req.file as Express.Multer.File
+        );
         url = imageUrl;
       }
+
+      console.log(url);
 
       const parsedBody = {
         documentType: req.body.documentType as RestaurantDocumentTypeEnum,
@@ -70,6 +75,52 @@ export class RestaurantController {
       return res.status(200).json({
         success: true,
         data: result.message,
+      });
+    }
+  );
+
+  static updateRestaurantDocumentController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      let imageUrl: string = '';
+
+      if (req.file) {
+        const url = await uploadDocumentToCloudinary(
+          req.file as Express.Multer.File
+        );
+        imageUrl = url;
+      }
+
+      const parsedBody = {
+        documentType: req.body.documentType as RestaurantDocumentTypeEnum,
+        url: imageUrl,
+      };
+
+      const validatedBody =
+        await updateRestaurantDocumentValidators(parsedBody);
+
+      const result =
+        await RestaurantController.restaurantService.updateRestaurantDocument({
+          userId: req.user._id,
+          data: validatedBody,
+        });
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    }
+  );
+
+  static getRestaurantDataController = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const result =
+        await RestaurantController.restaurantService.getRestaurantDetail({
+          userId: req.user._id,
+        });
+
+      return res.status(200).json({
+        success: true,
+        data: result,
       });
     }
   );

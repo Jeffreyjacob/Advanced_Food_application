@@ -31,3 +31,18 @@ export const addRestaurantDocumentValidators = async (
 
   return validators.validateAsync(reqBody, { abortEarly: false });
 };
+
+export const updateRestaurantDocumentValidators = async (
+  reqBody: IRestaurantMutation['updateRestaurantDocument']
+): Promise<IRestaurantMutation['updateRestaurantDocument']> => {
+  const validators: ObjectSchema<
+    IRestaurantMutation['updateRestaurantDocument']
+  > = Joi.object({
+    documentType: Joi.string().valid(
+      ...Object.keys(RestaurantDocumentTypeEnum)
+    ),
+    url: Joi.string().required(),
+  });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};

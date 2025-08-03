@@ -61,6 +61,12 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
         },
         rejectionReason: String,
         expiryDate: Date,
+        reminderJobId: {
+          type: String,
+        },
+        expiryJobId: {
+          type: String,
+        },
       },
       taxCeritificate: {
         url: String,
@@ -70,6 +76,12 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
         },
         rejectionReason: String,
         expiryDate: Date,
+        reminderJobId: {
+          type: String,
+        },
+        expiryJobId: {
+          type: String,
+        },
       },
       foodHandlerPermit: {
         url: String,
@@ -79,6 +91,12 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
         },
         rejectionReason: String,
         expiryDate: Date,
+        reminderJobId: {
+          type: String,
+        },
+        expiryJobId: {
+          type: String,
+        },
       },
     },
     walletSetup: {

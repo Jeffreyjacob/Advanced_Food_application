@@ -39,3 +39,44 @@ export const uploadImage = async (
     return uploadedImage.url;
   }
 };
+
+const generateRawUrl = (publicId: string): string => {
+  return cloudinary.url(publicId, {
+    resource_type: 'raw',
+    secure: true,
+  });
+};
+
+export const uploadDocumentToCloudinary = async (
+  file: Express.Multer.File
+): Promise<string> => {
+  // A) Compute file hash
+  const fileHash = generateFileHash(file.buffer);
+
+  const search = await cloudinary.search
+    .expression(`context.file_hash="${fileHash}"`) // ← quotes around the hash are critical!
+    .max_results(1)
+    .execute();
+
+  if (search.resources?.length) {
+    return search.resources[0].secure_url;
+  }
+
+  const dataUri = `data:${file.mimetype};base64,${file.buffer.toString(
+    'base64'
+  )}`;
+
+  const result = await cloudinary.uploader.upload(dataUri, {
+    resource_type: 'raw',
+    use_filename: true,
+    unique_filename: false,
+    overwrite: false,
+    context: { file_hash: fileHash },
+  });
+
+  if (!result.secure_url) {
+    throw new Error('Cloudinary did not return a secure_url');
+  }
+
+  return generateRawUrl(result.public_id);
+};

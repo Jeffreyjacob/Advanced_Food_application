@@ -89,8 +89,7 @@ export interface IRestaurantMutation {
 
   updateRestaurantDocument: {
     documentType: RestaurantDocumentTypeEnum;
-    url?: string;
-    rejectionReason?: string;
+    url: string;
   };
 }
 

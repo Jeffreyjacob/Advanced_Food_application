@@ -8,11 +8,13 @@ import rateLimit from 'express-rate-limit';
 import ConnectDB from './config/dbConfig';
 import { ErrorHandler } from './middleware/errorhandler';
 import { serverAdapter } from './BullBoard';
-import { emailWorker } from './queue/email/worker';
 import authRoutes from './routes/authRoutes';
 import customerRoutes from './routes/customerRoutes';
 import { Workers } from './worker';
 import restaurantRoutes from './routes/restaurantRoutes';
+import { AsycnHandler } from './utils/asyncHandler';
+import { handleStripeWebhookConnect } from './webhooks/stripeConnectWebhook';
+import walletRoutes from './routes/walletRoutes';
 
 const limiter = rateLimit({
   windowMs: config.security.rateLimit.windowMs,
@@ -50,6 +52,11 @@ const StartServer = async () => {
   app.use(morgan('common'));
   app.use(limiter);
   app.use(cookieParser());
+  app.post(
+    `${config.apiPrefix}/webhook/stripe/connect`,
+    express.raw({ type: 'application/json' }),
+    AsycnHandler(handleStripeWebhookConnect)
+  );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -59,6 +66,7 @@ const StartServer = async () => {
   app.use(`${config.apiPrefix}/auth`, authRoutes);
   app.use(`${config.apiPrefix}/customer`, customerRoutes);
   app.use(`${config.apiPrefix}/restaurant`, restaurantRoutes);
+  app.use(`${config.apiPrefix}/wallet`, walletRoutes);
 
   app.use(ErrorHandler);
 

@@ -56,6 +56,7 @@ export interface ICustomer extends IBaseUser {
 
 export interface IRestaurantOwner extends IBaseUser {
   ownedRestaurant: IRestaurant['_id'];
+  stripeAccountId: string;
 }
 
 export interface IRestaurant extends Document {

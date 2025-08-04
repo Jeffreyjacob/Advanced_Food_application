@@ -71,7 +71,7 @@ export interface IRestaurant extends Document {
   logo: string;
   cuisineType: string;
   description: string;
-  stripeAccountId?: string;
+  stripeAccountId: string;
   verificationStatus: RestaurantVerificationStatusEnum;
   documents: {
     businessLicense: {
@@ -115,7 +115,7 @@ export interface IDriver extends IBaseUser {
     color: string;
     plateNumber: string;
   };
-  stripeAccountId?: string;
+  stripeAccountId: string;
   verificationStatus: RestaurantVerificationStatusEnum;
   documents: {
     driverLicense: {

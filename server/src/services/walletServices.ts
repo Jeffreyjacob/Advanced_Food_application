@@ -13,6 +13,7 @@ import { countriesISO } from '../utils/countryIso';
 import config from '../config/config';
 import { Request } from 'express';
 import { IBaseUser } from '../interface/models/models';
+import { Driver } from '../models/driver';
 
 export class WalletServices {
   async createStripeConnectAccount({
@@ -105,6 +106,88 @@ export class WalletServices {
         data: accountLink.url,
       };
     } else if (data.role === RoleEnums.Driver) {
+      const findDriver = await Driver.findOne({
+        _id: new mongoose.Types.ObjectId(data.userId),
+      });
+
+      if (!findDriver) {
+        throw new AppError("driver owner can't be found", 404);
+      }
+
+      // find country ISO
+      const countryISO = countriesISO.find(
+        (country) =>
+          country.name.toLowerCase() === findDriver.country.toLowerCase()
+      );
+
+      // create stripe account for user
+
+      const account = await stripe.accounts.create({
+        type: 'express',
+        email: findDriver.email,
+        country: countryISO?.code,
+        default_currency: 'usd',
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+        individual: {
+          first_name: findDriver.firstName,
+          last_name: findDriver.lastName,
+          email: findDriver.email,
+        },
+        business_type: 'individual',
+        settings: {
+          payouts: {
+            schedule: {
+              interval: 'manual',
+            },
+          },
+        },
+      });
+
+      //create wallet record in database
+      const wallet = await Wallets.create({
+        userId: findDriver._id,
+        stripeAccountId: account.id,
+        accountType: StripeAccountType.express,
+        currency: 'usd',
+        country: findDriver.country,
+        balance: {
+          available: 0,
+          pending: 0,
+          lastUpdated: new Date(),
+        },
+        accountStatus: StripeAccountStatusEnum.pending,
+        payoutsEnabled: false,
+        chargesEnabled: false,
+        detailsSubmitted: false,
+        requirements: {
+          currentlyDue: account.requirements?.currently_due || [],
+          eventuallyDue: account.requirements?.eventually_due || [],
+          pastDue: account.requirements?.past_due || [],
+          pendingVerification: account.requirements?.pending_verification || [],
+        },
+      });
+
+      // updated restaurant owner stripeAccountId
+
+      findDriver.stripeAccountId = account.id;
+      await findDriver.save();
+
+      // generate onboarding url to finish boarding process and verify their account
+
+      const accountLink = await stripe.accountLinks.create({
+        account: account.id,
+        refresh_url: `${config.frontendUrls.baseUrl}/onboardingLink`,
+        return_url: `${config.frontendUrls.baseUrl}`,
+        type: 'account_onboarding',
+      });
+
+      return {
+        message: 'Wallet created successfully',
+        data: accountLink.url,
+      };
     }
   }
 
@@ -122,6 +205,15 @@ export class WalletServices {
 
       stripeAccountId = findRestaurantOwner.stripeAccountId;
     } else if (data.role === RoleEnums.Driver) {
+      const findDriver = await Driver.findOne({
+        _id: new mongoose.Types.ObjectId(data.userId),
+      });
+
+      if (!findDriver) {
+        throw new AppError('driver was not found', 404);
+      }
+
+      stripeAccountId = findDriver.stripeAccountId;
     }
 
     const account = await stripe.accountLinks.create({
@@ -148,6 +240,20 @@ export class WalletServices {
 
       const createLoginUrl = await stripe.accounts.createLoginLink(
         findRestaurantOwner.stripeAccountId
+      );
+
+      return createLoginUrl.url;
+    } else if (req.user.role === RoleEnums.Driver) {
+      const findDriver = await Driver.findOne({
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      });
+
+      if (!findDriver) {
+        throw new AppError('Drive was not found', 404);
+      }
+
+      const createLoginUrl = await stripe.accounts.createLoginLink(
+        findDriver.stripeAccountId
       );
 
       return createLoginUrl.url;

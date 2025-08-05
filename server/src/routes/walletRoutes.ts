@@ -30,7 +30,7 @@ walletRoutes
   );
 
 walletRoutes
-  .route('/deleteWallet')
+  .route('/delete')
   .delete(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner, RoleEnums.Driver),

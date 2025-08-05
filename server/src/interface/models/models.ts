@@ -172,6 +172,7 @@ export interface IWallet extends Document {
     currency: string;
     isVerified: boolean;
   };
+  reasons: string[];
   deauthorizedAt: Date;
   isActive: boolean;
 }

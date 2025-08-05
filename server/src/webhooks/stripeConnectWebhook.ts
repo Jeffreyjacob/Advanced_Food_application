@@ -7,7 +7,6 @@ import { AppError } from '../utils/appError';
 import { mapStripeAccountStatus } from '../utils/helper';
 import {
   DocumentStatusEnum,
-  RestaurantDocumentTypeEnum,
   RestaurantVerificationStatusEnum,
   RoleEnums,
   StripeAccountStatusEnum,
@@ -29,8 +28,14 @@ const handleAccountUpdated = async (account: Stripe.Account) => {
 
     const accountStatus = mapStripeAccountStatus(account);
 
+    console.log(accountStatus);
+
     const updateData = {
-      account: accountStatus,
+      accountStatus: accountStatus.status,
+      reasons:
+        accountStatus.status === StripeAccountStatusEnum.enabled
+          ? []
+          : accountStatus.reasons,
       payoutsEnabled: account.payouts_enabled || false,
       chargesEnabled: account.charges_enabled || false,
       detailsSubmitted: account.details_submitted || false,
@@ -47,7 +52,8 @@ const handleAccountUpdated = async (account: Stripe.Account) => {
     };
 
     await Wallets.findByIdAndUpdate(wallet._id, updateData);
-    if (accountStatus === StripeAccountStatusEnum.enabled) {
+    if (accountStatus.status === StripeAccountStatusEnum.enabled) {
+      console.log('updating restaurant wallet status');
       const findUser = await BaseUser.findOne({
         _id: wallet.userId,
       });
@@ -86,6 +92,7 @@ const handleAccountUpdated = async (account: Stripe.Account) => {
         ) {
           updateRestaurant.verificationStatus =
             RestaurantVerificationStatusEnum.Approved;
+          updateRestaurant.isLive = true;
 
           await updateRestaurant.save();
         }
@@ -168,11 +175,13 @@ export const handleStripeWebhookConnect = async (
 ) => {
   const sig = req.headers['stripe-signature'];
   let event: Stripe.Event;
+  console.log(config.stripe.Stripe_webhook_connect_secret);
+  const endpointSecret = config.stripe.Stripe_webhook_connect_secret as string;
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig as string,
-      config.stripe.Stripe_webhook_connect_secret!
+      endpointSecret
     );
   } catch (error: any) {
     console.log(`Webhook signature verification failed.`, error);

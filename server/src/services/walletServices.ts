@@ -14,6 +14,7 @@ import config from '../config/config';
 import { Request } from 'express';
 import { IBaseUser } from '../interface/models/models';
 import { Driver } from '../models/driver';
+import { BaseUser } from '../models/baseUser';
 
 export class WalletServices {
   async createStripeConnectAccount({
@@ -265,13 +266,15 @@ export class WalletServices {
   }: {
     userId: IBaseUser['_id'];
   }): Promise<{ message: string }> {
-    const wallet = await Wallets.findOne({ userId });
+    const findWallet = await Wallets.findOne({ userId });
 
-    if (!wallet) {
+    if (!findWallet) {
       throw new AppError('wallet not found', 404);
     }
 
-    const { stripeAccountId } = wallet;
+    console.log(findWallet, 'findWallet');
+
+    const { stripeAccountId } = findWallet;
 
     const account = await stripe.accounts.retrieve(stripeAccountId);
 
@@ -290,10 +293,56 @@ export class WalletServices {
           400
         );
       }
+    }
 
-      const deletedAccount = await stripe.accounts.del(stripeAccountId);
+    await stripe.accounts.del(stripeAccountId);
 
-      await Wallets.deleteOne({ userId });
+    const wallet = await Wallets.findOneAndDelete({
+      _id: findWallet._id,
+    });
+
+    if (!wallet) {
+      throw new AppError('Unable to delete wallet', 400);
+    }
+
+    const findUser = await BaseUser.findOne({
+      _id: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findUser) {
+      throw new AppError('User not found', 404);
+    }
+
+    if (findUser.role === RoleEnums.Restaurant_Owner) {
+      const updateRestaurantOwner = await RestaurantOwner.findOneAndUpdate(
+        {
+          _id: findUser._id,
+        },
+        {
+          $unset: {
+            stripeAccountId: 1,
+          },
+        }
+      );
+
+      if (!updateRestaurantOwner) {
+        throw new AppError('unable to update restaurant owner info', 400);
+      }
+    } else if (findUser.role === RoleEnums.Driver) {
+      const updateDriver = await Driver.findOneAndUpdate(
+        {
+          _id: findUser._id,
+        },
+        {
+          $unset: {
+            stripeAccountId: 1,
+          },
+        }
+      );
+
+      if (!updateDriver) {
+        throw new AppError('Unable to update driver', 400);
+      }
     }
 
     return {

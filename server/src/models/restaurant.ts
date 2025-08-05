@@ -103,6 +103,10 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
       type: Boolean,
       default: false,
     },
+    walletCreated: {
+      type: Boolean,
+      default: false,
+    },
     isLive: {
       type: Boolean,
       default: false,

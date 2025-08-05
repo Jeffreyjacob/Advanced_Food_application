@@ -76,6 +76,10 @@ const DriverSchema: Schema<IDriver> = new Schema(
       type: Boolean,
       default: false,
     },
+    walletCreated: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

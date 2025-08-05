@@ -15,6 +15,7 @@ import { Request } from 'express';
 import { IBaseUser } from '../interface/models/models';
 import { Driver } from '../models/driver';
 import { BaseUser } from '../models/baseUser';
+import { Restaurant } from '../models/restaurant';
 
 export class WalletServices {
   async createStripeConnectAccount({
@@ -87,6 +88,19 @@ export class WalletServices {
           pendingVerification: account.requirements?.pending_verification || [],
         },
       });
+
+      // updating wallet created boolean
+
+      const findRestaurant = await Restaurant.findOne({
+        owner: findRestaurantOwner._id,
+      });
+
+      if (!findRestaurant) {
+        throw new AppError('Unable to find restaurant', 404);
+      }
+
+      findRestaurant.walletCreated = true;
+      await findRestaurant.save();
 
       // updated restaurant owner stripeAccountId
 
@@ -170,6 +184,9 @@ export class WalletServices {
           pendingVerification: account.requirements?.pending_verification || [],
         },
       });
+
+      // updating walletcreate boolean
+      findDriver.walletCreated = true;
 
       // updated restaurant owner stripeAccountId
 

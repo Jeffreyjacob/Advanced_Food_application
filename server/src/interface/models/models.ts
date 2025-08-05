@@ -100,6 +100,7 @@ export interface IRestaurant extends Document {
     };
   };
   walletSetup: Boolean;
+  walletCreated: Boolean;
   isLive: boolean;
 }
 
@@ -135,6 +136,7 @@ export interface IDriver extends IBaseUser {
     };
   };
   isOnline: boolean;
+  walletCreated: boolean;
   walletSetup: boolean;
 }
 

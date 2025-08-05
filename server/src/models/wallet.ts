@@ -89,6 +89,10 @@ const WalletSchema: Schema<IWallet> = new Schema(
     deauthorizedAt: {
       type: Date,
     },
+    reasons: {
+      type: [String],
+      default: [],
+    },
     isActive: {
       type: Boolean,
       default: true,

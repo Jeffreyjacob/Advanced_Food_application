@@ -8,6 +8,9 @@ const ResturantOwnerschema: Schema<IRestaurantOwner> = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'restaurants',
     },
+    stripeAccountId: {
+      type: String,
+    },
   },
   {
     timestamps: true,

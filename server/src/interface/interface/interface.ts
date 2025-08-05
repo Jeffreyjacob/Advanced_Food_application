@@ -1,5 +1,5 @@
-import { RestaurantDocumentTypeEnum } from '../enums/enums';
-import { IAddress } from '../models/models';
+import { RestaurantDocumentTypeEnum, RoleEnums } from '../enums/enums';
+import { IAddress, IBaseUser } from '../models/models';
 
 export interface ICustomerMutation {
   registerCustomer: {
@@ -116,6 +116,18 @@ export interface IVerifyDocument {
   score: 0;
 }
 
+export interface IWalletMutation {
+  createStripeConnectAccount: {
+    role: RoleEnums;
+    userId: IBaseUser['_id'];
+  };
+  onBoardingLink: {
+    role: RoleEnums;
+    userId: IBaseUser['_id'];
+  };
+}
+
 export interface IDriverQuery {}
 export interface IRestaurantOwnerQuery {}
 export interface ICustomerQuery {}
+export interface IWalletQuery {}

@@ -56,6 +56,7 @@ export interface ICustomer extends IBaseUser {
 
 export interface IRestaurantOwner extends IBaseUser {
   ownedRestaurant: IRestaurant['_id'];
+  stripeAccountId: string;
 }
 
 export interface IRestaurant extends Document {
@@ -70,7 +71,7 @@ export interface IRestaurant extends Document {
   logo: string;
   cuisineType: string;
   description: string;
-  stripeAccountId?: string;
+  stripeAccountId: string;
   verificationStatus: RestaurantVerificationStatusEnum;
   documents: {
     businessLicense: {
@@ -99,6 +100,7 @@ export interface IRestaurant extends Document {
     };
   };
   walletSetup: Boolean;
+  walletCreated: Boolean;
   isLive: boolean;
 }
 
@@ -114,7 +116,7 @@ export interface IDriver extends IBaseUser {
     color: string;
     plateNumber: string;
   };
-  stripeAccountId?: string;
+  stripeAccountId: string;
   verificationStatus: RestaurantVerificationStatusEnum;
   documents: {
     driverLicense: {
@@ -134,6 +136,7 @@ export interface IDriver extends IBaseUser {
     };
   };
   isOnline: boolean;
+  walletCreated: boolean;
   walletSetup: boolean;
 }
 
@@ -171,6 +174,7 @@ export interface IWallet extends Document {
     currency: string;
     isVerified: boolean;
   };
+  reasons: string[];
   deauthorizedAt: Date;
   isActive: boolean;
 }

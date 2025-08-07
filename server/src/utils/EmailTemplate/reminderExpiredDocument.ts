@@ -1,4 +1,7 @@
-import { RestaurantDocumentTypeEnum } from '../../interface/enums/enums';
+import {
+  expiryDocumentTypeEnum,
+  RestaurantDocumentTypeEnum,
+} from '../../interface/enums/enums';
 
 export const ReminderExpiredDocuments = ({
   ownerName,
@@ -7,7 +10,7 @@ export const ReminderExpiredDocuments = ({
   expiryDate,
 }: {
   ownerName: string;
-  documentType: RestaurantDocumentTypeEnum;
+  documentType: expiryDocumentTypeEnum;
   restaurantName: string;
   expiryDate: string | undefined;
 }) => {

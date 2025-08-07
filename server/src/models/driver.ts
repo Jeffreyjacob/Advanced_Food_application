@@ -2,6 +2,7 @@ import { Schema } from 'mongoose';
 import { IDriver } from '../interface/models/models';
 import {
   DocumentStatusEnum,
+  IdentityVerificationStatusEnum,
   RestaurantVerificationStatusEnum,
   VehicleTypeEnum,
 } from '../interface/enums/enums';
@@ -39,6 +40,12 @@ const DriverSchema: Schema<IDriver> = new Schema(
       enum: RestaurantVerificationStatusEnum,
       default: RestaurantVerificationStatusEnum.Pending,
     },
+    stripeVerificationSessionId: String,
+    stripeVerificationStatus: {
+      type: String,
+      enum: IdentityVerificationStatusEnum,
+      default: IdentityVerificationStatusEnum.pending,
+    },
     documents: {
       driverLicense: {
         url: String,
@@ -48,6 +55,10 @@ const DriverSchema: Schema<IDriver> = new Schema(
           default: DocumentStatusEnum.Pending,
         },
         rejectionReason: String,
+        stripeVerificationReportId: String,
+        expiryDate: Date,
+        expiryJobId: String,
+        reminderJobId: String,
       },
       vehicleRegistration: {
         url: String,
@@ -57,6 +68,9 @@ const DriverSchema: Schema<IDriver> = new Schema(
           default: DocumentStatusEnum.Pending,
         },
         rejectionReason: String,
+        expiryDate: Date,
+        expiryJobId: String,
+        reminderJobId: String,
       },
       profilePhoto: {
         url: String,
@@ -66,6 +80,7 @@ const DriverSchema: Schema<IDriver> = new Schema(
           default: DocumentStatusEnum.Pending,
         },
         rejectionReason: String,
+        stripeVerificationReportId: String,
       },
     },
     isOnline: {

@@ -1,6 +1,7 @@
 import mongoose, { Document } from 'mongoose';
 import {
   DocumentStatusEnum,
+  IdentityVerificationStatusEnum,
   RestaurantVerificationStatusEnum,
   RoleEnums,
   StripeAccountStatusEnum,
@@ -118,21 +119,31 @@ export interface IDriver extends IBaseUser {
   };
   stripeAccountId: string;
   verificationStatus: RestaurantVerificationStatusEnum;
+  stripeVerificationSessionId: string;
+  stripeVerificationStatus: IdentityVerificationStatusEnum;
   documents: {
     driverLicense: {
       url: string;
       status: DocumentStatusEnum;
       rejectionReason?: string;
+      stripeVerificationReportId?: string;
+      expiryDate?: Date;
+      expiryJobId?: string;
+      reminderJobId?: string;
     };
     vehicleRegistration: {
       url: string;
       status: DocumentStatusEnum;
       rejectionReason?: string;
+      expiryDate?: Date;
+      expiryJobId?: string;
+      reminderJobId?: string;
     };
     profilePhoto: {
       url: string;
       status: DocumentStatusEnum;
       rejectionReason?: string;
+      stripeVerificationReportId?: string;
     };
   };
   isOnline: boolean;

@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { StripeAccountStatusEnum } from '../interface/enums/enums';
+import { stripe } from '../config/stripe';
 
 export const generateOtp = () => {
   return Math.floor(10000 + Math.random() * 90000);
@@ -66,4 +67,90 @@ export const mapStripeAccountStatus = (
   }
 
   return { status: StripeAccountStatusEnum.disabled, reasons };
+};
+
+export const getSelfieRejectionReason = (selfie: any) => {
+  if (selfie.error) {
+    switch (selfie.error.code) {
+      case 'selfie_document_missing_photo':
+        return 'No photo found on your driver license. Please ensure your license has clear photo.';
+      case 'selfie_face_mismatch':
+        return 'Your selfie does not match the photo on your driver license. Please retake your selfie';
+      case 'selfie_unverified_other':
+        return 'Selfie could not be verified. Please ensure good listening and look directly at the camera';
+      case 'selfie_manipulated':
+        return 'Selfie appears to have been altered. Please take a natural, unedited selfie.';
+      default:
+        return `Selfie verification failed:${selfie.error.code}. Please take a clear selfie that match your license photo.`;
+    }
+  }
+  return 'Photo verification failed. Please take a clear selfie that matches your driver license photo.';
+};
+
+export const getDocumentRejectionReason = (document: any): string => {
+  if (document.errorhandler) {
+    switch (document.error.code) {
+      case 'document_unverified_other':
+        return 'Document could not be verified. Please ensure your driver license is clear, unobscured and valid.';
+      case 'document_corrupt':
+        return 'Document image is corrupted or unreadable. Please take a clearer photo of your driver license.';
+      case 'document_failed_copy':
+        return 'Document appears to be a photocopy. Please provide an original driver license.';
+      case 'document_fraudulent':
+        return 'Document verification failed security checks. Please ensure you are using a valid, unaltered driver license.';
+      case 'document_invalid':
+        return 'Invalid document provided. Please ensure you are uploading a valid driver license.';
+      case 'document_manipulated':
+        return 'Document appears to have been altered. Please provide an unaltered driver license.';
+      case 'document_missing_back':
+        return 'Both front and back of the driver license are required.';
+      case 'document_missing_front':
+        return 'Front of the driver license is required.';
+      case 'document_not_uploaded':
+        return 'Driver license was not uploaded. Please try again.';
+      case 'document_photo_mismatch':
+        return 'The photo on your driver license does not match your selfie. Please ensure you are using your own document.';
+      case 'document_too_large':
+        return 'Document file is too large. Please upload a smaller image.';
+      case 'document_type_not_supported':
+        return 'Document type not supported. Please upload a valid driver license.';
+      default:
+        return `Document verification failed: ${document.error.code}. Please try uploading a clear photo of your valid driver license.`;
+    }
+  }
+
+  return 'Driver license verificiation failed. Please ensure your document is clear, valid and unaltered.';
+};
+
+export const getDocumentUrls = async (
+  reportId: string,
+  documentType: 'document' | 'selfie'
+): Promise<string[]> => {
+  try {
+    const report = await stripe.identity.verificationReports.retrieve(
+      reportId,
+      {
+        expand: ['document.files', 'selfie.files'],
+      }
+    );
+
+    const urls: string[] = [];
+
+    if (documentType === 'document' && report.document?.files) {
+      for (const fileId of report.document.files) {
+        const fileUrl = await stripe.files.retrieve(fileId);
+        if (fileUrl.url) urls.push(fileUrl.url);
+      }
+    } else if (documentType === 'selfie' && report.selfie?.selfie) {
+      for (const fileId of report.selfie.selfie) {
+        const fileUrl = await stripe.files.retrieve(fileId);
+        if (fileUrl.url) urls.push(fileUrl.url);
+      }
+    }
+
+    return urls;
+  } catch (error: any) {
+    console.error(`Error getting ${documentType} URLs:`, error);
+    return [];
+  }
 };

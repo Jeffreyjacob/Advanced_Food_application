@@ -127,6 +127,7 @@ const documentValidatorWorker = new Worker(
           {
             restaurantId: updatedRestaurant._id,
             documentType: DocumentData.documentType,
+            userType: 'RestaurantOwner',
           },
           {
             delay: new Date(result.expiryDate).getTime() - Date.now(),
@@ -170,6 +171,7 @@ const documentValidatorWorker = new Worker(
               {
                 restaurantId: updatedRestaurant._id,
                 documentType: DocumentData.documentType,
+                userType: 'RestaurantOwner',
               },
               {
                 delay: delay,

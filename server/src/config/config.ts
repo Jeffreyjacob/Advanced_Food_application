@@ -46,6 +46,7 @@ export default {
     stripe_publishable_key: process.env.STRIPE_PUBLISHABLE_KEY,
     Stripe_webhook_connect_secret: process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
     Stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+    stripe_webhook_identity: process.env.STRIPE_WEBHOOK_IDENTITY,
   },
 
   security: {

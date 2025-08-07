@@ -31,6 +31,7 @@ export enum DocumentStatusEnum {
   Rejected = 'Rejected',
   Approved = 'Approved',
   Expired = 'Expired',
+  Verified = 'verified',
 }
 
 export enum VehicleTypeEnum {
@@ -57,4 +58,20 @@ export enum RestaurantDocumentTypeEnum {
   businessLicense = 'businessLicense',
   taxCeritificate = 'taxCeritificate',
   foodHandlerPermit = 'foodHandlerPermit',
+}
+
+export enum IdentityVerificationStatusEnum {
+  not_started = 'not_started',
+  pending = 'pending',
+  verified = 'verified',
+  requires_input = 'requires_input',
+  cancelled = 'cancelled',
+}
+
+export enum expiryDocumentTypeEnum {
+  businessLicense = 'businessLicense',
+  taxCeritificate = 'taxCeritificate',
+  foodHandlerPermit = 'foodHandlerPermit',
+  driverLicense = 'driverLicense',
+  vehicleRegistration = 'vehicleRegistration',
 }

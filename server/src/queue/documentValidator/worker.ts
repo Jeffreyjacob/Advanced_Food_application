@@ -1,9 +1,10 @@
 import { Job, Worker } from 'bullmq';
-import { IRestaurantOwner } from '../../interface/models/models';
+import { IDriver, IRestaurantOwner } from '../../interface/models/models';
 import { IRestaurantMutation } from '../../interface/interface/interface';
 import { DocumentVerificationService } from '../../utils/verificationServices';
 import {
   DocumentStatusEnum,
+  expiryDocumentTypeEnum,
   RestaurantDocumentTypeEnum,
   RestaurantVerificationStatusEnum,
 } from '../../interface/enums/enums';
@@ -127,6 +128,7 @@ const documentValidatorWorker = new Worker(
           {
             restaurantId: updatedRestaurant._id,
             documentType: DocumentData.documentType,
+            userType: 'RestaurantOwner',
           },
           {
             delay: new Date(result.expiryDate).getTime() - Date.now(),
@@ -170,6 +172,7 @@ const documentValidatorWorker = new Worker(
               {
                 restaurantId: updatedRestaurant._id,
                 documentType: DocumentData.documentType,
+                userType: 'RestaurantOwner',
               },
               {
                 delay: delay,

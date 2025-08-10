@@ -2,6 +2,7 @@ import { emailWorker } from './queue/email/worker';
 import { documentValidatorWorker } from './queue/documentValidator/worker';
 import { expiryDocumentWorker } from './queue/expiryDocument/worker';
 import { reminderExpiredDocumentWorker } from './queue/reminderExpiryDocument/worker';
+import { vehicleValidatorWorker } from './queue/driverValidator/worker';
 
 export const Workers = async () => {
   emailWorker.on('ready', () => {
@@ -34,5 +35,13 @@ export const Workers = async () => {
 
   reminderExpiredDocumentWorker.on('error', (err) => {
     console.log('reminderExpiredDocument error:', err);
+  });
+
+  vehicleValidatorWorker.on('ready', () => {
+    console.log('vehicle Registeration Validator is ready');
+  });
+
+  vehicleValidatorWorker.on('error', (err) => {
+    console.log('vehicle Registeration validator error:', err);
   });
 };

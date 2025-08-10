@@ -7,7 +7,7 @@ export const DocumentRejectedHTML = ({
   rejectedReasons,
 }: {
   username: string;
-  documentType: RestaurantDocumentTypeEnum;
+  documentType: RestaurantDocumentTypeEnum | 'VehicleRegistrationDocument';
   year: number;
   rejectedReasons: string[];
 }): string => {

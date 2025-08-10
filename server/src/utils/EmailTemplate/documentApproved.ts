@@ -6,7 +6,7 @@ export const DocumentApprovedHTML = ({
   year,
 }: {
   username: string;
-  documentType: RestaurantDocumentTypeEnum;
+  documentType: RestaurantDocumentTypeEnum | 'VehicleRegistrationDocument';
   year: number;
 }) => {
   return `

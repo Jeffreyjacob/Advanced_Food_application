@@ -1,5 +1,8 @@
 import Stripe from 'stripe';
-import { StripeAccountStatusEnum } from '../interface/enums/enums';
+import {
+  StripeAccountStatusEnum,
+  VehicleTypeEnum,
+} from '../interface/enums/enums';
 import { stripe } from '../config/stripe';
 
 export const generateOtp = () => {
@@ -153,4 +156,26 @@ export const getDocumentUrls = async (
     console.error(`Error getting ${documentType} URLs:`, error);
     return [];
   }
+};
+
+export const findVehicleType = (vehicle: string): VehicleTypeEnum => {
+  let vehicleType: string = '';
+  if (
+    [
+      'sedan',
+      'coupe',
+      'hatchback',
+      'suv',
+      'convertible',
+      'wagon',
+      'pickup',
+    ].includes(vehicle.toLowerCase())
+  ) {
+    vehicleType = VehicleTypeEnum.Car;
+  } else if (['motorcycle'].includes(vehicle)) {
+    vehicleType = VehicleTypeEnum.Bike;
+  } else if (['rv', 'trailer', 'truck', 'van'].includes(vehicle)) {
+    vehicleType = VehicleTypeEnum.BigVehicle;
+  }
+  return vehicleType as VehicleTypeEnum;
 };

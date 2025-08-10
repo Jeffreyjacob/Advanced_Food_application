@@ -1,4 +1,8 @@
-import { RestaurantDocumentTypeEnum, RoleEnums } from '../enums/enums';
+import {
+  RestaurantDocumentTypeEnum,
+  RoleEnums,
+  VehicleTypeEnum,
+} from '../enums/enums';
 import { IAddress, IBaseUser } from '../models/models';
 
 export interface ICustomerMutation {
@@ -105,6 +109,20 @@ export interface IDriverMutation {
   loginDriver: {
     email: string;
     password: string;
+  };
+  updateDriver: {
+    vehicleType: VehicleTypeEnum;
+    make: string;
+    model: string;
+    color: string;
+    plateNumber: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    country: string;
+  };
+  updateVehicleRegisteration: {
+    url: string;
   };
 }
 

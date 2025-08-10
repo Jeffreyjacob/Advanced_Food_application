@@ -37,6 +37,7 @@ export enum DocumentStatusEnum {
 export enum VehicleTypeEnum {
   Bike = 'Bike',
   Car = 'Car',
+  BigVehicle = 'BigVechile',
   Scooter = 'Scooter',
   Bicycle = 'Bicycle',
 }
@@ -66,6 +67,7 @@ export enum IdentityVerificationStatusEnum {
   verified = 'verified',
   requires_input = 'requires_input',
   cancelled = 'cancelled',
+  expired = 'expired',
 }
 
 export enum expiryDocumentTypeEnum {

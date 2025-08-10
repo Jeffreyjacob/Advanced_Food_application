@@ -1,9 +1,10 @@
 import { Job, Worker } from 'bullmq';
-import { IRestaurantOwner } from '../../interface/models/models';
+import { IDriver, IRestaurantOwner } from '../../interface/models/models';
 import { IRestaurantMutation } from '../../interface/interface/interface';
 import { DocumentVerificationService } from '../../utils/verificationServices';
 import {
   DocumentStatusEnum,
+  expiryDocumentTypeEnum,
   RestaurantDocumentTypeEnum,
   RestaurantVerificationStatusEnum,
 } from '../../interface/enums/enums';

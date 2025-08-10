@@ -17,7 +17,7 @@ const DriverSchema: Schema<IDriver> = new Schema(
   {
     traceableLocation: traceableLocation,
     vehicleInfo: {
-      vechicleType: {
+      vehicleType: {
         type: String,
         enum: VehicleTypeEnum,
       },
@@ -45,6 +45,10 @@ const DriverSchema: Schema<IDriver> = new Schema(
       type: String,
       enum: IdentityVerificationStatusEnum,
       default: IdentityVerificationStatusEnum.pending,
+    },
+    stripeIdentitySetup: {
+      type: Boolean,
+      default: false,
     },
     documents: {
       driverLicense: {

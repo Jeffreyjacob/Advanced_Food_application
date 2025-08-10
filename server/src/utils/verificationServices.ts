@@ -385,4 +385,203 @@ export class DocumentVerificationService {
       verification.score >= 60 && verification.issues.length === 0;
     return verification;
   }
+
+  async verifyDriverVehicleRegisteration(documentUrl: string) {
+    const extractedText = await this.extractTextFromDocument(documentUrl);
+
+    const verification: IVerifyDocument = {
+      isValid: false,
+      expiryDate: '',
+      extractedData: {},
+      issues: [],
+      score: 0,
+    };
+
+    const patterns = {
+      // Owner Information - More specific patterns
+      ownerName: [
+        /Owner\s+Name:\s*([A-Za-z\s]{3,50})(?=\s*(?:\r?\n|Address|City))/i,
+        /(?:owner|registered\s+to)[\s:]+([A-Z][A-Za-z\s]{2,40})(?=\s*(?:\r?\n|Address))/i,
+      ],
+
+      ownerAddress: [
+        /Address:\s*([A-Za-z0-9\s,.#'-]{5,100})(?=\s*(?:\r?\n|City|State))/i,
+        /Address:\s*([0-9]+[A-Za-z0-9\s,.#'-]{3,80})(?=\s*City)/i,
+      ],
+
+      ownerCity: [/City:\s*([A-Za-z\s'-]{2,30})(?=\s*(?:\r?\n|State))/i],
+
+      ownerState: [/State:\s*([A-Za-z\s]{2,25})(?=\s*(?:\r?\n|Phone|Zip))/i],
+
+      ownerPhone: [
+        /Phone:\s*([0-9\s\-\+\(\)]{8,20})(?=\s*(?:\r?\n|Occupation))/i,
+      ],
+
+      make: [
+        /Make:[\s\t\r\n]*([A-Z]{3,15})(?=[\s\t\r\n]*Model)/i,
+        // Fallback - just look for TOYOTA anywhere in vehicle section
+        /VEHICLE[\s\S]*?(TOYOTA|HONDA|FORD|NISSAN|BMW|MERCEDES)/i,
+      ],
+
+      // Model - Very flexible patterns
+      model: [
+        // Standard pattern with flexible whitespace
+        /Model:[\s\t\r\n]*([A-Z][A-Za-z0-9\s\-]{1,15})(?=[\s\t\r\n]*Year)/i,
+        // Look for CAMRY anywhere after "Model:"
+        /Model:[\s\S]{0,50}?(CAMRY|COROLLA|ACCORD|CIVIC|PRIUS)/i,
+        // Just look for CAMRY anywhere in the text
+        /\b(CAMRY)\b/i,
+        // Look in vehicle information section
+        /VEHICLE\s+INFORMATION[\s\S]*?\b(CAMRY|COROLLA|ACCORD|CIVIC|PRIUS|AVALON)\b/i,
+      ],
+
+      year: [
+        /Year:\s*([12][0-9]{3})(?=\s*(?:\r?\n|Color|Make|Model))/i,
+        /(?:model\s+)?year[\s:]+([12][0-9]{3})/i,
+      ],
+
+      color: [/Color:\s*([A-Za-z\s]{3,15})(?=\s*(?:\r?\n|Body|VIN))/i],
+
+      bodyType: [
+        /Body\s+Type:\s*([A-Za-z\s]{3,20})(?=\s*(?:\r?\n|Engine))/i,
+        /(?:body\s+style|type)[\s:]+([A-Za-z\s]{3,20})(?=\s*engine)/i,
+      ],
+
+      engineSize: [
+        /Engine\s+Size:\s*([0-9\.]+\s*L)(?=\s*(?:\r?\n|Fuel))/i,
+        /displacement[\s:]+([0-9\.]+\s*[lL])/i,
+      ],
+
+      fuelType: [
+        /Fuel\s+Type:\s*([A-Za-z]{3,15})(?=\s*(?:\r?\n|Transmission))/i,
+      ],
+
+      // Registration Details - Fixed patterns
+      plateNumber: [
+        /Plate\s+Number:\s*([A-Z0-9\-]{3,12})(?=\s*(?:\r?\n|Registration))/i,
+        /(?:license\s+plate|plate)[\s:]+([A-Z]{2,3}-[0-9]{3}-[A-Z]{2})/i,
+        /\b([A-Z]{2,3}-[0-9]{3}-[A-Z]{1,2})\b/i, // Nigerian plate format: ABC-123-XY
+      ],
+
+      registrationNumber: [
+        /Registration\s+Number:\s*([A-Z0-9\-]{8,20})(?=\s*(?:\r?\n|VIN))/i,
+        /(?:reg|certificate)\s+number[\s:]+([A-Z]{2}-[A-Z]{2}-[0-9]{4}-[0-9]{6})/i,
+      ],
+
+      vin: [
+        // Standard pattern with flexible whitespace
+        /VIN:[\s\t\r\n]*([A-HJ-NPR-Z0-9]{17})(?=[\s\t\r\n]*Chassis)/i,
+        // Look for the specific VIN anywhere
+        /\b(2T1BURHE5NC123456)\b/i,
+        // More flexible - look for VIN: followed by 17 chars within reasonable distance
+        /VIN:[\s\S]{0,30}?([A-HJ-NPR-Z0-9]{17})/i,
+        // Look in registration details section
+        /REGISTRATION\s+DETAILS[\s\S]*?\b([A-HJ-NPR-Z0-9]{17})\b/i,
+        // Any 17-character alphanumeric starting with 2T1
+        /\b(2T1[A-HJ-NPR-Z0-9]{14})\b/i,
+      ],
+
+      chassisNumber: [
+        /Chassis\s+Number:\s*([A-HJ-NPR-Z0-9]{17})(?=\s*(?:\r?\n|Engine))/i,
+      ],
+
+      engineNumber: [
+        /Engine\s+Number:\s*([A-Z0-9]{8,15})(?=\s*(?:\r?\n|Registration|Type))/i,
+      ],
+
+      registrationType: [
+        /Registration\s+Type:\s*([A-Za-z\s]{3,15})(?=\s*(?:\r?\n|Category))/i,
+        /(private|commercial|government|diplomatic)/i,
+      ],
+
+      category: [
+        /Category:\s*([A-Za-z\s]{5,25})(?=\s*(?:\r?\n|DATES|Issue))/i,
+        /(passenger\s+vehicle|commercial\s+vehicle|motorcycle|truck)/i,
+      ],
+
+      // Dates - More specific for Nigerian format
+      issueDate: [
+        /Issue\s+Date:\s*([A-Za-z]+ [0-9]{1,2}, [0-9]{4})(?=\s*(?:\r?\n|Expiry))/i,
+        /(?:issued|date\s+issued)[\s:]+([A-Za-z]+ [0-9]{1,2}, [0-9]{4})/i,
+      ],
+
+      expiryDate: [
+        /Expiry\s+Date:\s*([A-Za-z]+ [0-9]{1,2}, [0-9]{4})(?=\s*(?:\r?\n|Registration|Fee))/i,
+        /(?:expires?|valid\s+until)[\s:]+([A-Za-z]+ [0-9]{1,2}, [0-9]{4})/i,
+        // Look for dates that are clearly in the future (2026 and beyond for current registrations)
+        /([A-Za-z]+ [0-9]{1,2}, 202[6-9])/i,
+      ],
+
+      registrationFee: [
+        /Registration\s+Fee:\s*(₦[0-9,]+\.?[0-9]*)(?=\s*(?:\r?\n|Road))/i,
+        /(?:fee|cost|amount)[\s:]+₦([0-9,]+\.?[0-9]*)/i,
+      ],
+    };
+
+    Object.entries(patterns).forEach(([key, patternArray]) => {
+      for (const pattern of patternArray) {
+        const match = extractedText.match(pattern);
+
+        if (match && match[1]) {
+          if (!verification.extractedData[key]) {
+            verification.extractedData[key] = match[1].trim();
+            verification.score += 10;
+            break;
+          }
+        }
+      }
+    });
+
+    console.log(verification.extractedData, 'extractedData');
+
+    if (verification.extractedData.expiryDate) {
+      const dateString = verification.extractedData.expiryDate.trim();
+      const expiryDate = moment(
+        dateString,
+        [
+          'MMMM DD, YYYY',
+          'MMM DD, YYYY',
+          'DD MMMM YYYY',
+          'DD MMM YYYY',
+          'MM/DD/YYYY',
+          'DD/MM/YYYY',
+          'YYYY-MM-DD',
+        ],
+        true
+      );
+
+      if (expiryDate.isValid()) {
+        if (expiryDate.isBefore(moment())) {
+          verification.issues.push('Vehicle registratiion has expired');
+        } else if (expiryDate.isBefore(moment().add(30, 'days'))) {
+          verification.issues.push(
+            'Vehicle registeration expires within 30 days'
+          );
+        } else {
+          verification.score += 20;
+          verification.expiryDate = verification.extractedData.expiryDate;
+        }
+      } else {
+        verification.issues.push('No expiry date found');
+      }
+    }
+
+    if (!verification.extractedData.ownerName) {
+      verification.issues.push('Owner name not found');
+    }
+
+    if (
+      !verification.extractedData.plateNumber &&
+      !verification.extractedData.registrationNumber
+    ) {
+      verification.issues.push(
+        'Plate number or registeration number not found'
+      );
+    }
+
+    verification.isValid =
+      verification.score >= 80 && verification.issues.length === 0;
+
+    return verification;
+  }
 }

@@ -9,7 +9,9 @@ import mongoose from 'mongoose';
 import {
   DocumentStatusEnum,
   expiryDocumentTypeEnum,
+  IdentityVerificationStatusEnum,
   RestaurantDocumentTypeEnum,
+  RestaurantVerificationStatusEnum,
 } from '../../interface/enums/enums';
 import { AppError } from '../../utils/appError';
 import { ExpiryDocumentHTML } from '../../utils/EmailTemplate/expiredDocument';
@@ -17,6 +19,8 @@ import { RestaurantOwner } from '../../models/restaurantOwner';
 import { emailQueue } from '../email/queue';
 import { redisConnection } from '../../config/redisConfig';
 import config from '../../config/config';
+import { Driver } from '../../models/driver';
+import { LicenseExpiredNotificationHTML } from '../../utils/EmailTemplate/driverExpiredDocument';
 
 interface ExpiryDocumentData {
   restaurantId?: IRestaurant['_id'];
@@ -97,6 +101,41 @@ const expiryDocumentWorker = new Worker(
           message: 'Expired document status has been updated',
         };
       } else if (userType === 'Driver') {
+        const driver = await Driver.findOne({
+          _id: new mongoose.Types.ObjectId(driverId),
+        });
+
+        if (!driver) {
+          throw new AppError('Driver not found', 404);
+        }
+
+        driver.documents.driverLicense.status = DocumentStatusEnum.Expired;
+        driver.stripeVerificationStatus =
+          IdentityVerificationStatusEnum.requires_input;
+        driver.documents.driverLicense.rejectionReason =
+          'Driver license is expired, Upload a valid id';
+        driver.verificationStatus =
+          RestaurantVerificationStatusEnum.Under_Review;
+
+        await driver.save();
+
+        const html = LicenseExpiredNotificationHTML({
+          driverName: driver.firstName,
+          expiryDate: driver.documents.driverLicense.expiryDate?.toDateString(),
+          documentType: expiryDocumentTypeEnum.driverLicense,
+        });
+
+        await emailQueue.add('Expiry Driver Document', {
+          to: driver.email,
+          subject: 'Document Expired',
+          html,
+          template: 'Document Expired',
+        });
+
+        return {
+          success: true,
+          message: 'Expired document status has been updated ',
+        };
       }
     } catch (error: any) {
       console.error(`Failed to update expiry document status:`, error);

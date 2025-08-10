@@ -121,6 +121,7 @@ export interface IDriver extends IBaseUser {
   verificationStatus: RestaurantVerificationStatusEnum;
   stripeVerificationSessionId: string;
   stripeVerificationStatus: IdentityVerificationStatusEnum;
+  stripeIdentitySetup: boolean;
   documents: {
     driverLicense: {
       url: string;

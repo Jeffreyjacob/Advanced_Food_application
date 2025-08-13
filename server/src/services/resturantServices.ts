@@ -1,11 +1,19 @@
 import mongoose from 'mongoose';
-import { IRestaurantMutation } from '../interface/interface/interface';
-import { IRestaurant, IRestaurantOwner } from '../interface/models/models';
+import {
+  IMenuCategoryMutation,
+  IRestaurantMutation,
+} from '../interface/interface/interface';
+import {
+  IMenuCategory,
+  IRestaurant,
+  IRestaurantOwner,
+} from '../interface/models/models';
 import { Restaurant } from '../models/restaurant';
 import { AppError } from '../utils/appError';
 import { DocumentStatusEnum } from '../interface/enums/enums';
 import { DocumentValidatorQueue } from '../queue/documentValidator/queue';
 import { RestaurantOwner } from '../models/restaurantOwner';
+import MenuCategory from '../models/menuCategory';
 
 export class RestaurantServies {
   async updateRestaurantInfo({
@@ -249,5 +257,259 @@ export class RestaurantServies {
     }
 
     return findRestaurant;
+  }
+
+  async createMenuCategory({
+    userId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    data: IMenuCategoryMutation['createCategory'];
+  }) {
+    // find restaurant with restauarant owner id
+
+    const restaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!restaurant) {
+      throw new AppError('restaurant not found', 404);
+    }
+
+    const lastMenuCategory = await MenuCategory.findOne({
+      restaurantId: restaurant._id,
+    }).sort({ displayOrder: -1 });
+
+    const displayOrder = lastMenuCategory
+      ? lastMenuCategory.displayOrder + 1
+      : 1;
+
+    const menuCategory = await MenuCategory.create({
+      restaurantId: restaurant._id,
+      ...data,
+      displayOrder,
+    });
+
+    return {
+      message: 'Menu Category created successfully!',
+    };
+  }
+
+  async updateMenuCategory({
+    userId,
+    categoryId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    categoryId: IMenuCategory['_id'];
+    data: IMenuCategoryMutation['updateCategory'];
+  }) {
+    const name = data.name && {
+      name: data.name,
+    };
+
+    const description = data.description && {
+      description: data.description,
+    };
+
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant not found', 404);
+    }
+
+    const findAndupdateCategory = await MenuCategory.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(categoryId),
+        restaurantId: findRestaurant._id,
+      },
+      {
+        $set: {
+          ...name,
+          ...description,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!findAndupdateCategory) {
+      throw new AppError('Unable to update menu category', 400);
+    }
+
+    return {
+      message: 'Menu category updated successfully!',
+    };
+  }
+
+  async deleteMenuCategory({
+    userId,
+    categoryId,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    categoryId: IMenuCategory['_id'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('restaurant not found', 404);
+    }
+
+    const findAndDeleteCategory = await MenuCategory.findOneAndDelete({
+      _id: new mongoose.Types.ObjectId(categoryId),
+      restaurantId: findRestaurant._id,
+    });
+
+    if (!findAndDeleteCategory) {
+      throw new AppError('Unable to delete menu category', 400);
+    }
+
+    return {
+      message: 'Menue category has been deleted successfully!',
+    };
+  }
+
+  async updateMenuCategoryDisplayOrder({
+    userId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    data: IMenuCategoryMutation['updateDisplayOrder'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant not found', 404);
+    }
+
+    const checkCategoryId = await Promise.all(
+      data.newOrderCategory.map(async (categoryId) => {
+        return await MenuCategory.findById(categoryId);
+      })
+    );
+
+    const findCategory = checkCategoryId.filter(
+      (category) => category !== null
+    );
+
+    if (
+      data.newOrderCategory &&
+      data.newOrderCategory.length > 0 &&
+      findCategory.length !== data.newOrderCategory.length
+    ) {
+      const notFoundIds = data.newOrderCategory.filter(
+        (caetgory, index) => checkCategoryId[index] === null
+      );
+      throw new AppError(
+        `one of the category ${notFoundIds.join(', ')} which you provided  was not found in this restuarant menu categor`,
+        400
+      );
+    }
+
+    const operation = data.newOrderCategory.map((category, index) => ({
+      updateOne: {
+        filter: { _id: new mongoose.Types.ObjectId(category) },
+        update: { $set: { displayOrder: index + 1 } },
+      },
+    }));
+
+    const updateMenuCategory = await MenuCategory.bulkWrite(operation);
+
+    if (!updateMenuCategory) {
+      throw new AppError('unable to update menu category', 400);
+    }
+
+    return {
+      message: 'display order of menu category updated successfully!',
+    };
+  }
+
+  async toggleMenUCategoryStatus({
+    userId,
+    categoryId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    categoryId: IMenuCategory['_id'];
+    data: IMenuCategoryMutation['toggleCategoryStatus'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant not found', 404);
+    }
+
+    const updateMenuCategory = await MenuCategory.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(categoryId),
+        restaurantId: findRestaurant._id,
+      },
+      {
+        $set: {
+          isActive: data.isActive,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updateMenuCategory) {
+      throw new AppError('Unable to update menu category', 400);
+    }
+
+    return {
+      message: 'Menu category updated successfully!',
+    };
+  }
+
+  async getAllResturantMenuCategory({
+    userId,
+  }: {
+    userId: IRestaurantOwner['_id'];
+  }): Promise<IMenuCategory[]> {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was found', 404);
+    }
+
+    const menuCategory = await MenuCategory.find({
+      restaurantId: findRestaurant._id,
+    }).sort({ displayOrder: -1 });
+
+    return menuCategory;
+  }
+
+  async getActiveResturantMenuCategory({
+    userId,
+  }: {
+    userId: IRestaurantOwner['_id'];
+  }): Promise<IMenuCategory[]> {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was found', 404);
+    }
+
+    const menuCategory = await MenuCategory.find({
+      restaurantId: findRestaurant._id,
+      isActive: true,
+    }).sort({ displayOrder: -1 });
+
+    return menuCategory;
   }
 }

@@ -8,6 +8,13 @@ import {
 } from '../validators/restaurant.validator';
 import { uploadDocumentToCloudinary, uploadImage } from '../utils/uploadImages';
 import { RestaurantDocumentTypeEnum } from '../interface/enums/enums';
+import {
+  changeMenuCategoryStatusValidators,
+  createMenuCategoryValidators,
+  updateDisplayOrderMenuCategoryValidators,
+  updateMenuCategoryValidators,
+} from '../validators/menuCategory.validators';
+import mongoose from 'mongoose';
 
 export class RestaurantController {
   private static restaurantService = new RestaurantServies();
@@ -117,6 +124,131 @@ export class RestaurantController {
         await RestaurantController.restaurantService.getRestaurantDetail({
           userId: req.user._id,
         });
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    }
+  );
+
+  static createMenuCategory = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await createMenuCategoryValidators(req.body);
+
+      const result =
+        await RestaurantController.restaurantService.createMenuCategory({
+          userId: req.user._id,
+          data: validatedBody,
+        });
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    }
+  );
+
+  static updateMenuCategory = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await updateMenuCategoryValidators(req.body);
+      const categoryId = req.params.id;
+
+      const result =
+        await RestaurantController.restaurantService.updateMenuCategory({
+          userId: req.user._id,
+          categoryId: new mongoose.Types.ObjectId(categoryId),
+          data: validatedBody,
+        });
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    }
+  );
+
+  static updateDisplayOrderMenuCategory = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await updateDisplayOrderMenuCategoryValidators(
+        req.body
+      );
+
+      const result =
+        await RestaurantController.restaurantService.updateMenuCategoryDisplayOrder(
+          {
+            userId: req.user._id,
+            data: validatedBody,
+          }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    }
+  );
+
+  static toggleMenuCategoryStatus = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const validatedBody = await changeMenuCategoryStatusValidators(req.body);
+
+      const categoryId = req.params.id;
+      const result =
+        await RestaurantController.restaurantService.toggleMenUCategoryStatus({
+          userId: req.user._id,
+          categoryId: new mongoose.Types.ObjectId(categoryId),
+          data: validatedBody,
+        });
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    }
+  );
+
+  static deleteMenuCategory = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const categoryId = req.params.id;
+
+      const result =
+        await RestaurantController.restaurantService.deleteMenuCategory({
+          userId: req.user._id,
+          categoryId: new mongoose.Types.ObjectId(categoryId),
+        });
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    }
+  );
+
+  static getAllMenuCategory = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const result =
+        await RestaurantController.restaurantService.getAllResturantMenuCategory(
+          {
+            userId: req.user._id,
+          }
+        );
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    }
+  );
+
+  static getActiveMenuCategory = AsycnHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const result =
+        await RestaurantController.restaurantService.getActiveResturantMenuCategory(
+          {
+            userId: req.user._id,
+          }
+        );
 
       return res.status(200).json({
         success: true,

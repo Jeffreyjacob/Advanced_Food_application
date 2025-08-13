@@ -145,6 +145,26 @@ export interface IWalletMutation {
   };
 }
 
+export interface IMenuCategoryMutation {
+  createCategory: {
+    name: string;
+    description: string;
+  };
+  updateCategory: {
+    name?: string;
+    description?: string;
+  };
+  updateDisplayOrder: {
+    newOrderCategory: string[];
+  };
+  toggleCategoryStatus: {
+    isActive: boolean;
+  };
+}
+export interface IMenuCategoryQuery {}
+export interface IMenuItemMutation {}
+export interface IMenuItemQuery {}
+
 export interface IDriverQuery {}
 export interface IRestaurantOwnerQuery {}
 export interface ICustomerQuery {}

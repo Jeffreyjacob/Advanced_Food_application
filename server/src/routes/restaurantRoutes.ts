@@ -42,4 +42,59 @@ restaurantRoutes
     RestaurantController.getRestaurantDataController
   );
 
+restaurantRoutes
+  .route('/menu/category/all')
+  .get(
+    Protect,
+    RestricTo(RoleEnums.Restaurant_Owner),
+    RestaurantController.getAllMenuCategory
+  );
+
+restaurantRoutes
+  .route('/menu/category/active')
+  .get(
+    Protect,
+    RestricTo(RoleEnums.Restaurant_Owner),
+    RestaurantController.getActiveMenuCategory
+  );
+
+restaurantRoutes
+  .route('/menu/category/create')
+  .post(
+    Protect,
+    RestricTo(RoleEnums.Restaurant_Owner),
+    RestaurantController.createMenuCategory
+  );
+restaurantRoutes
+  .route('/menu/category/order/update')
+  .put(
+    Protect,
+    RestricTo(RoleEnums.Restaurant_Owner),
+    RestaurantController.updateDisplayOrderMenuCategory
+  );
+
+restaurantRoutes
+  .route('/menu/category/update/:id')
+  .put(
+    Protect,
+    RestricTo(RoleEnums.Restaurant_Owner),
+    RestaurantController.updateMenuCategory
+  );
+
+restaurantRoutes
+  .route('/menu/category/status/update/:id')
+  .put(
+    Protect,
+    RestricTo(RoleEnums.Restaurant_Owner),
+    RestaurantController.toggleMenuCategoryStatus
+  );
+
+restaurantRoutes
+  .route('/menu/category/delete/:id')
+  .delete(
+    Protect,
+    RestricTo(RoleEnums.Restaurant_Owner),
+    RestaurantController.deleteMenuCategory
+  );
+
 export default restaurantRoutes;

@@ -100,6 +100,8 @@ export interface IRestaurant extends Document {
       reminderJobId?: string;
     };
   };
+  isOpen: boolean;
+  isAcceptingOrders: boolean;
   walletSetup: Boolean;
   walletCreated: Boolean;
   isLive: boolean;
@@ -197,4 +199,54 @@ export interface IToken extends Document {
   token: string;
   isRevoked: boolean;
   isExpiresAt: Date;
+}
+
+export interface IMenuCategory {
+  _id: mongoose.Types.ObjectId;
+  restaurantId: IRestaurant['_id'];
+  name: string;
+  description: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface IMenuItem {
+  _id: mongoose.Types.ObjectId;
+  restaurantId: IRestaurant['_id'];
+  categoryId: IMenuCategory['_id'];
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  preparationTime: number;
+  variants: {
+    name: string;
+    price: string;
+    description: string;
+  }[];
+  isVegetarian: boolean;
+  isVegan: boolean;
+  isSpicy: boolean;
+  isPopular: boolean;
+  tags: string[];
+  isAvailable: boolean;
+  displayOrder: number;
+  orderCount: number;
+}
+
+export interface ICart {
+  _id: mongoose.Types.ObjectId;
+  custmerId: ICustomer['_id'];
+  restaurantId: IRestaurant['_id'];
+  items: {
+    menuItemId: IMenuItem['_id'];
+    name: string;
+    price: number;
+    image: string;
+    quantity: number;
+    selectedInstructions: string;
+    itemTotal: number;
+  }[];
+  subtotal: number;
+  itemCount: number;
 }

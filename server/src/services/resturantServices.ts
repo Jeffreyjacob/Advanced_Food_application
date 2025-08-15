@@ -906,7 +906,7 @@ export class RestaurantServies {
     };
 
     const isVegan = data.isVegan && {
-      isVegan: data.isSpicy,
+      isVegan: data.isVegan,
     };
 
     const isVegetarian = data.isVegetarian && {
@@ -931,6 +931,8 @@ export class RestaurantServies {
       ...isVegan,
       ...isVegetarian,
     };
+
+    console.log(query);
 
     const page = data.page || 1;
     const limit = data.limit || 10;

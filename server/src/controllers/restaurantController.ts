@@ -474,7 +474,7 @@ export class RestaurantController {
     async (req: Request, res: Response, next: NextFunction) => {
       const { getNumber, getString, getBoolean } = parseQueryParams();
 
-      const name = getString(req.query.name);
+      const name = req.query.name !== undefined && getString(req.query.name);
       const minPrice = getNumber(req.query.minPrice);
       const maxPrice = getNumber(req.query.maxPrice);
       const isSpicy = getBoolean(req.query.isSpicy);

@@ -39,6 +39,7 @@ export const SearchMenuItemValidator = [
     .withMessage('Max Price query must be a positive number'),
 
   query('limit')
+    .optional()
     .isInt({ min: 1, max: 100 })
     .toInt()
     .withMessage('limit must be between 1 - 100'),

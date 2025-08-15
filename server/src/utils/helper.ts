@@ -179,3 +179,84 @@ export const findVehicleType = (vehicle: string): VehicleTypeEnum => {
   }
   return vehicleType as VehicleTypeEnum;
 };
+
+export const BodyParsing = async (reqBody: any) => {
+  const formData = reqBody;
+
+  const parsedbody: any = {};
+
+  const variantMatch: Record<number, Record<string, any>> = {};
+
+  const variantRegex = /^variants\[(\d+)\]\.([A-Za-z0-9_]+)$/;
+
+  const tagsMatch: Record<number, string> = {};
+
+  const tagRegex = /^tags\[(\d+)\]\.([A-Za-z0-9_]+)$/;
+
+  Object.entries(formData).forEach(([key, value]) => {
+    if (['name', 'description', 'menuCategoryId'].includes(key)) {
+      parsedbody[key] = String(value);
+    } else if (['price', 'preparationTime'].includes(key)) {
+      parsedbody[key] = parseInt(value as string, 10);
+    } else if (['isVegetarian', 'isVegan', 'isSpicy'].includes(key)) {
+      parsedbody[key] =
+        value === 'true' ? true : value === 'false' ? false : undefined;
+    } else if (key === 'tags') {
+      parsedbody[key] = value;
+    }
+
+    const match = variantRegex.exec(key);
+
+    if (match && match[1] && match[2]) {
+      const idx = parseInt(match[1], 10);
+      const props = match[2];
+
+      if (!variantMatch[idx]) {
+        variantMatch[idx] = {};
+      }
+
+      if (props === 'name') {
+        variantMatch[idx].name = String(value);
+      } else if (props === 'price') {
+        variantMatch[idx].price = parseInt(value as string);
+      } else if (props === 'description') {
+        variantMatch[idx].description = String(value);
+      } else {
+        variantMatch[idx][props] = value;
+      }
+    }
+
+    const variantIndices = Object.keys(variantMatch)
+      .map((k) => Number(k))
+      .sort((a, b) => a - b);
+
+    if (variantIndices.length > 1) {
+      parsedbody.variants = variantIndices.map((i) => {
+        return variantMatch[i];
+      });
+    }
+  });
+
+  return parsedbody;
+};
+
+export const parseQueryParams = () => {
+  const getString = (value: any) => {
+    const newValue = Array.isArray(value) ? value[0] : value;
+    return String(newValue);
+  };
+
+  const getNumber = (value: any) => {
+    const newValue = Array.isArray(value) ? value[0] : value;
+    return Number(newValue);
+  };
+
+  const getBoolean = (value: any) => {
+    const newValue = Array.isArray(value) ? value[0] : value;
+    const isBoolean =
+      newValue === 'true' ? true : newValue === 'false' ? false : undefined;
+    return Boolean(isBoolean);
+  };
+
+  return { getString, getNumber, getBoolean };
+};

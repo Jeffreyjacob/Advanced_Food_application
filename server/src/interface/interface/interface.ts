@@ -3,7 +3,7 @@ import {
   RoleEnums,
   VehicleTypeEnum,
 } from '../enums/enums';
-import { IAddress, IBaseUser } from '../models/models';
+import { IAddress, IBaseUser, IMenuCategory } from '../models/models';
 
 export interface ICustomerMutation {
   registerCustomer: {
@@ -162,8 +162,68 @@ export interface IMenuCategoryMutation {
   };
 }
 export interface IMenuCategoryQuery {}
-export interface IMenuItemMutation {}
-export interface IMenuItemQuery {}
+export interface IMenuItemMutation {
+  createMenuItem: {
+    menuCategoryId: IMenuCategory['_id'];
+    name: string;
+    description: string;
+    price: number;
+    image: string;
+    preparationTime: number;
+    variants?: {
+      name: string;
+      price: number;
+      description?: string;
+    }[];
+    isVegetarian?: boolean;
+    isVegan?: boolean;
+    isSpicy?: boolean;
+    tags?: string[];
+  };
+  updateMenuItem: {
+    menuCategoryId?: IMenuCategory['_id'];
+    name?: string;
+    description?: string;
+    price?: number;
+    image?: number;
+    preparationTime?: number;
+    variants?: {
+      name: string;
+      price: number;
+      description?: string;
+    }[];
+    isVegetarian?: boolean;
+    isVegan?: boolean;
+    isSpicy?: boolean;
+    tags?: string[];
+  };
+  updateDisplayOrder: {
+    newOrderMenuItem: string[];
+  };
+  toggleStatus: {
+    isAvaliable: boolean;
+  };
+}
+export interface IMenuItemQuery {
+  SearchMenuItem: {
+    name?: string;
+    isVegan?: boolean;
+    isVegetarian?: boolean;
+    isSpicy?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+    limit?: number;
+    page?: number;
+  };
+  getActiveMenuItem: {
+    page?: number;
+    limit?: number;
+  };
+  getAllMenuItem: {
+    page?: number;
+    limit?: number;
+  };
+}
 
 export interface IDriverQuery {}
 export interface IRestaurantOwnerQuery {}

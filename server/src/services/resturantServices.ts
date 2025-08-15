@@ -1,19 +1,25 @@
 import mongoose from 'mongoose';
 import {
   IMenuCategoryMutation,
+  IMenuCategoryQuery,
+  IMenuItemMutation,
+  IMenuItemQuery,
   IRestaurantMutation,
 } from '../interface/interface/interface';
 import {
+  IBaseUser,
   IMenuCategory,
+  IMenuItem,
   IRestaurant,
   IRestaurantOwner,
 } from '../interface/models/models';
 import { Restaurant } from '../models/restaurant';
 import { AppError } from '../utils/appError';
-import { DocumentStatusEnum } from '../interface/enums/enums';
+import { DocumentStatusEnum, RoleEnums } from '../interface/enums/enums';
 import { DocumentValidatorQueue } from '../queue/documentValidator/queue';
 import { RestaurantOwner } from '../models/restaurantOwner';
 import MenuCategory from '../models/menuCategory';
+import { MenuItem } from '../models/menuItem';
 
 export class RestaurantServies {
   async updateRestaurantInfo({
@@ -472,7 +478,7 @@ export class RestaurantServies {
     };
   }
 
-  async getAllResturantMenuCategory({
+  async getAllMenuCategory({
     userId,
   }: {
     userId: IRestaurantOwner['_id'];
@@ -492,7 +498,7 @@ export class RestaurantServies {
     return menuCategory;
   }
 
-  async getActiveResturantMenuCategory({
+  async getActiveMenuCategory({
     userId,
   }: {
     userId: IRestaurantOwner['_id'];
@@ -511,5 +517,437 @@ export class RestaurantServies {
     }).sort({ displayOrder: -1 });
 
     return menuCategory;
+  }
+
+  async createMenuItem({
+    userId,
+    data,
+  }: {
+    userId: IRestaurant['_id'];
+    data: IMenuItemMutation['createMenuItem'];
+  }) {
+    const { menuCategoryId, ...otherData } = data;
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant not found', 404);
+    }
+
+    const menuCategory = await MenuCategory.findById(menuCategoryId);
+
+    if (!menuCategory) {
+      throw new AppError('Menu Category not found', 404);
+    }
+
+    const lastMenuItem = await MenuItem.findOne({
+      restaurantId: findRestaurant._id,
+    }).sort({ displayOrder: -1 });
+
+    const displayOrder = lastMenuItem ? lastMenuItem.displayOrder + 1 : 1;
+
+    await MenuItem.create({
+      restaurantId: findRestaurant._id,
+      categoryId: menuCategory._id,
+      ...otherData,
+      displayOrder,
+    });
+
+    return {
+      message: 'Menu item created successfully!',
+    };
+  }
+  async updateMenuItem({
+    userId,
+    menuItemId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    menuItemId: IMenuItem['_id'];
+    data: IMenuItemMutation['updateMenuItem'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('restaurant was not found', 404);
+    }
+
+    const updateData: any = {};
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (key === 'menuCategoryId') {
+        updateData['categoryId'] = new mongoose.Types.ObjectId(value as string);
+      } else {
+        updateData[key] = value;
+      }
+    });
+
+    console.log(updateData, 'updateData');
+
+    const updateMenuItem = await MenuItem.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(menuItemId),
+      },
+      {
+        $set: updateData,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updateMenuItem) {
+      throw new AppError('Unable to update menu item', 400);
+    }
+
+    return {
+      message: 'Menu item updated successfully!',
+    };
+  }
+
+  async updateMenuItemDisplayOrder({
+    userId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    data: IMenuItemMutation['updateDisplayOrder'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('restaurant was not found', 404);
+    }
+
+    const checkMenuItemId = await Promise.all(
+      data.newOrderMenuItem.map(async (itemId) => {
+        return await MenuItem.findOne({
+          _id: new mongoose.Types.ObjectId(itemId),
+          restaurantId: findRestaurant._id,
+        });
+      })
+    );
+
+    const findMenuItem = checkMenuItemId.filter((item) => item !== null);
+
+    if (
+      data.newOrderMenuItem &&
+      data.newOrderMenuItem.length > 0 &&
+      findMenuItem.length !== data.newOrderMenuItem.length
+    ) {
+      const notFoundItemId = data.newOrderMenuItem.filter(
+        (item, index) => checkMenuItemId[index] === null
+      );
+
+      throw new AppError(
+        `menu item id ${notFoundItemId.join(',')} was not found in your restaurant`,
+        400
+      );
+    }
+
+    const operation = data.newOrderMenuItem.map((itemId, index) => ({
+      updateOne: {
+        filter: { _id: new mongoose.Types.ObjectId(itemId) },
+        update: { $set: { displayOrder: index + 1 } },
+      },
+    }));
+
+    const updateMenuItem = await MenuItem.bulkWrite(operation);
+
+    if (!updateMenuItem) {
+      throw new AppError('Unable to update menu items', 400);
+    }
+
+    return {
+      message: 'display order of menu item has updated successfully!',
+    };
+  }
+
+  async toggleMenuItemStatus({
+    userId,
+    menuItemId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    menuItemId: IMenuItem['_id'];
+    data: IMenuItemMutation['toggleStatus'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was not found', 404);
+    }
+
+    const updateMenuItem = await MenuItem.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(menuItemId),
+        restaurantId: findRestaurant._id,
+      },
+      {
+        $set: {
+          isAvailable: data.isAvaliable,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updateMenuItem) {
+      throw new AppError('Unable to update menu item', 400);
+    }
+
+    return {
+      message: 'Menu item updated successfully!',
+    };
+  }
+
+  async deleteMenuItem({
+    userId,
+    menuItemId,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    menuItemId: IMenuItem['_id'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was not found', 404);
+    }
+
+    const menuItem = await MenuItem.findOneAndDelete({
+      _id: new mongoose.Types.ObjectId(menuItemId),
+      restaurantId: findRestaurant._id,
+    });
+
+    if (!menuItem) {
+      throw new AppError('Unable to delete menu item', 400);
+    }
+
+    return {
+      message: 'Menu item deleted successfully!',
+    };
+  }
+
+  async getMenuItemByCategoryId({
+    userId,
+    categoryId,
+  }: {
+    userId: IBaseUser['_id'];
+    categoryId: IMenuCategory['_id'];
+  }): Promise<IMenuItem[]> {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was not found', 404);
+    }
+
+    const menuCategory = await MenuCategory.findOne({
+      _id: new mongoose.Types.ObjectId(categoryId),
+      restaurantId: findRestaurant._id,
+    });
+
+    if (!menuCategory) {
+      throw new AppError('Menu category was not found', 404);
+    }
+
+    const menuItems = await MenuItem.find({
+      categoryId: menuCategory._id,
+    }).sort({ displayOrder: -1 });
+
+    return menuItems;
+  }
+
+  async getMenuItemById({
+    menuItemId,
+    userId,
+  }: {
+    menuItemId: IMenuItem['_id'];
+    userId: IRestaurantOwner['_id'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was not found', 404);
+    }
+
+    const menuItem = await MenuItem.findOne({
+      _id: new mongoose.Types.ObjectId(menuItemId),
+      restaurantId: findRestaurant._id,
+    }).populate({ path: 'categoryId', select: '_id name description' });
+
+    if (!menuItem) {
+      throw new AppError('Menu item not found', 404);
+    }
+
+    return menuItem;
+  }
+
+  async getActiveMenuItems({
+    userId,
+    data,
+  }: {
+    userId: IBaseUser['_id'];
+    data: IMenuItemQuery['getActiveMenuItem'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was not found', 404);
+    }
+
+    const query = {
+      isAvailable: true,
+      restaurantId: findRestaurant._id,
+    };
+
+    const page = data.page || 1;
+    const limit = data.limit || 10;
+
+    const skip = (page - 1) * limit;
+
+    const totalCount = await MenuItem.countDocuments(query);
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const activeMenuItem = await MenuItem.find(query)
+      .skip(skip)
+      .sort({
+        displayOrder: -1,
+      })
+      .limit(limit);
+
+    return {
+      data: activeMenuItem,
+      currentPage: page,
+      totalPages,
+      total: totalCount,
+    };
+  }
+
+  async getAllMenuItems({
+    userId,
+    data,
+  }: {
+    userId: IBaseUser['_id'];
+    data: IMenuItemQuery['getAllMenuItem'];
+  }) {
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was not found', 404);
+    }
+
+    const query = {
+      restaurantId: findRestaurant._id,
+    };
+
+    const page = data.page || 1;
+    const limit = data.limit || 10;
+
+    const skip = (page - 1) * limit;
+    const totalCount = await MenuItem.countDocuments(query);
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const menuItems = await MenuItem.find(query)
+      .skip(skip)
+      .sort({ displayOrder: -1 })
+      .limit(limit);
+
+    return {
+      data: menuItems,
+      currentPage: page,
+      totalPages,
+      total: totalCount,
+    };
+  }
+
+  async SearchMenuItems({
+    userId,
+    data,
+  }: {
+    userId: IBaseUser['_id'];
+    data: IMenuItemQuery['SearchMenuItem'];
+  }) {
+    const name = data.name && {
+      name: { $regex: data.name, $options: 'i' },
+    };
+
+    const minPrice = data.minPrice && {
+      price: {
+        $gte: data.minPrice,
+      },
+    };
+
+    const maxPrice = data.maxPrice && {
+      price: {
+        $lte: data.maxPrice,
+      },
+    };
+
+    const isSpicy = data.isSpicy && {
+      isSpicy: data.isSpicy,
+    };
+
+    const isVegan = data.isVegan && {
+      isVegan: data.isSpicy,
+    };
+
+    const isVegetarian = data.isVegetarian && {
+      isVegetarain: data.isVegetarian,
+    };
+
+    const findRestaurant = await Restaurant.findOne({
+      owner: new mongoose.Types.ObjectId(userId),
+    });
+
+    if (!findRestaurant) {
+      throw new AppError('Restaurant was not found ', 404);
+    }
+
+    const query = {
+      isAvailable: true,
+      restaurantId: findRestaurant._id,
+      ...name,
+      ...minPrice,
+      ...maxPrice,
+      ...isSpicy,
+      ...isVegan,
+      ...isVegetarian,
+    };
+
+    const page = data.page || 1;
+    const limit = data.limit || 10;
+    const skip = (page - 1) * limit;
+    const totalCount = await MenuItem.countDocuments(query);
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const menuItems = await MenuItem.find(query)
+      .skip(skip)
+      .sort({ displayOrder: -1 })
+      .limit(limit);
+
+    return {
+      data: menuItems,
+      currentPage: page,
+      totalPages,
+      total: totalCount,
+    };
   }
 }

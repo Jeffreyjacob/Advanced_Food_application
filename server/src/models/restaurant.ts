@@ -116,7 +116,7 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
     timestamps: true,
   }
 );
-
+RestaurantSchema.index({ traceableLocation: '2dsphere' });
 RestaurantSchema.index({ owner: 1 });
 RestaurantSchema.index({ cuisineType: 1 });
 

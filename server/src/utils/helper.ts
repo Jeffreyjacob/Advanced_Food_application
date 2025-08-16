@@ -243,19 +243,21 @@ export const BodyParsing = async (reqBody: any) => {
 export const parseQueryParams = () => {
   const getString = (value: any) => {
     const newValue = Array.isArray(value) ? value[0] : value;
-    return String(newValue);
+    const value_ = newValue ? String(newValue) : undefined;
+    return value_;
   };
 
   const getNumber = (value: any) => {
     const newValue = Array.isArray(value) ? value[0] : value;
-    return Number(newValue);
+    const number_ = isNaN(newValue) ? undefined : Number(newValue);
+    return number_;
   };
 
   const getBoolean = (value: any) => {
     const newValue = Array.isArray(value) ? value[0] : value;
     const isBoolean =
       newValue === 'true' ? true : newValue === 'false' ? false : undefined;
-    return Boolean(isBoolean);
+    return isBoolean;
   };
 
   return { getString, getNumber, getBoolean };

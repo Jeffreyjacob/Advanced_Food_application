@@ -1,5 +1,8 @@
 import Joi, { ObjectSchema } from 'joi';
-import { ICustomerMutation } from '../interface/interface/interface';
+import {
+  ICustomerMutation,
+  ICustomerQuery,
+} from '../interface/interface/interface';
 import { countriesISO } from '../utils/countryIso';
 
 const validCountries = countriesISO.map((c) => c.name);
@@ -49,6 +52,60 @@ export const updateAddressValidators = async (
       state: Joi.string().optional(),
       zipCode: Joi.string().optional(),
       country: Joi.string().optional(),
+    });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const getRestaurantValidators = async (
+  reqBody: ICustomerQuery['getRestaurant']
+): Promise<ICustomerQuery['getRestaurant']> => {
+  const validators: ObjectSchema<ICustomerQuery['getRestaurant']> = Joi.object({
+    name: Joi.string().optional(),
+    cusine: Joi.string().optional(),
+    nearBy: Joi.boolean().optional(),
+    page: Joi.number().min(0).optional(),
+    limit: Joi.number().min(0).optional,
+  });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const getRestaurantMenuCategoriesValidator = async (
+  reqBody: ICustomerQuery['getRestaurantMenuCategories']
+): Promise<ICustomerQuery['getRestaurantMenuCategories']> => {
+  const validators: ObjectSchema<
+    ICustomerQuery['getRestaurantMenuCategories']
+  > = Joi.object({
+    name: Joi.string().optional(),
+    page: Joi.number().optional(),
+    limit: Joi.number().optional(),
+  });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const getRestaurantMenuItemByCategoryIdValidators = async (
+  reqBody: ICustomerQuery['getRestaurantMenuItembyCategoryId']
+): Promise<ICustomerQuery['getRestaurantMenuItembyCategoryId']> => {
+  const validators: ObjectSchema<
+    ICustomerQuery['getRestaurantMenuItembyCategoryId']
+  > = Joi.object({
+    page: Joi.number().optional(),
+    limit: Joi.number().optional(),
+  });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};
+
+export const getRestaurantAllMenuItemsValidators = async (
+  reqBody: ICustomerQuery['getRestaurantMenuItems']
+): Promise<ICustomerQuery['getRestaurantMenuItems']> => {
+  const validators: ObjectSchema<ICustomerQuery['getRestaurantMenuItems']> =
+    Joi.object({
+      name: Joi.string().optional(),
+      page: Joi.number().optional(),
+      limit: Joi.number().optional(),
     });
 
   return validators.validateAsync(reqBody, { abortEarly: false });

@@ -6,8 +6,8 @@ export const SearchMenuItemValidator = [
     .optional()
     .isString()
     .trim()
-    .isLength({ min: 1 })
-    .withMessage('name query must be above 1 characters'),
+    .withMessage('name query must be a string'),
+
   query('isVegan')
     .optional()
     .isIn(['true', 'false'])
@@ -66,6 +66,92 @@ export const ActiveMenuItem = [
 ];
 
 export const AllMenuItem = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('page must be a positive integer'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .toInt()
+    .withMessage('limit must be between 1 - 100'),
+];
+
+export const getAllRestaurants = [
+  query('name')
+    .optional()
+    .isString()
+    .trim()
+    .withMessage('name query must be a string'),
+
+  query('cusine')
+    .optional()
+    .isString()
+    .trim()
+    .withMessage('cusine misust be s string'),
+
+  query('nearBy')
+    .optional()
+    .isIn(['true', 'false'])
+    .withMessage('nearBy must be true or false')
+    .isBoolean(),
+
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('page must be a positive integer'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .toInt()
+    .withMessage('limit must be between 1 - 100'),
+];
+
+export const getRestMenuCategories = [
+  query('name')
+    .optional()
+    .isString()
+    .trim()
+    .withMessage('name must be a string'),
+
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('page must be a positive integer'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .toInt()
+    .withMessage('limit must between 1 - 100'),
+];
+
+export const getRestaurantMenuItemByCategoryId = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('page must be a positive integer'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .toInt()
+    .withMessage('limit must between 1 -100'),
+];
+
+export const getRestaurantMenuitems = [
+  query('name')
+    .optional()
+    .trim()
+    .isString()
+    .withMessage('name query must be a string'),
+
   query('page')
     .optional()
     .isInt({ min: 1 })

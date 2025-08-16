@@ -227,5 +227,27 @@ export interface IMenuItemQuery {
 
 export interface IDriverQuery {}
 export interface IRestaurantOwnerQuery {}
-export interface ICustomerQuery {}
+export interface ICustomerQuery {
+  getRestaurant: {
+    name?: string;
+    cusine?: string;
+    nearBy?: boolean;
+    page?: number;
+    limit?: number;
+  };
+  getRestaurantMenuCategories: {
+    name?: string;
+    page?: number;
+    limit?: number;
+  };
+  getRestaurantMenuItembyCategoryId: {
+    page?: number;
+    limit?: number;
+  };
+  getRestaurantMenuItems: {
+    name?: string;
+    page?: number;
+    limit?: number;
+  };
+}
 export interface IWalletQuery {}

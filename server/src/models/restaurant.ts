@@ -99,6 +99,14 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
         },
       },
     },
+    isAcceptingOrders: {
+      type: Boolean,
+      default: false,
+    },
+    isOpen: {
+      type: Boolean,
+      default: true,
+    },
     walletSetup: {
       type: Boolean,
       default: false,

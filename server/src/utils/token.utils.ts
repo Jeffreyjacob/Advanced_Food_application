@@ -2,9 +2,11 @@ import { Response } from 'express';
 import config from '../config/config';
 import { IBaseUser } from '../interface/models/models';
 import jwt from 'jsonwebtoken';
+import { RoleEnums } from '../interface/enums/enums';
 
 interface TokenPayload {
   id: string;
+  userType: RoleEnums;
 }
 
 interface TokenResponse {
@@ -14,7 +16,7 @@ interface TokenResponse {
 
 export const GenerateToken = (user: IBaseUser): TokenResponse => {
   const accessToken = jwt.sign(
-    { id: user._id },
+    { id: user._id, userType: user.role },
     config.tokens.accessToken.tokenKey,
     {
       expiresIn: '15m',
@@ -22,7 +24,7 @@ export const GenerateToken = (user: IBaseUser): TokenResponse => {
   );
 
   const refreshToken = jwt.sign(
-    { id: user._id },
+    { id: user._id, userType: user.role },
     config.tokens.refreshToken.tokenKey,
     {
       expiresIn: '7d',

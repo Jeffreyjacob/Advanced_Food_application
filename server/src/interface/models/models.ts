@@ -1,4 +1,4 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Mongoose } from 'mongoose';
 import {
   DocumentStatusEnum,
   IdentityVerificationStatusEnum,
@@ -149,6 +149,7 @@ export interface IDriver extends IBaseUser {
       stripeVerificationReportId?: string;
     };
   };
+  avaliableForPickup: boolean;
   isOnline: boolean;
   walletCreated: boolean;
   walletSetup: boolean;
@@ -240,6 +241,7 @@ export interface ICart {
   restaurantId: IRestaurant['_id'];
   items: {
     menuItemId: IMenuItem['_id'];
+    variantId: mongoose.Types.ObjectId;
     name: string;
     price: number;
     image: string;
@@ -249,4 +251,8 @@ export interface ICart {
   }[];
   subtotal: number;
   itemCount: number;
+}
+
+export interface IOrder {
+  _id: mongoose.Types.ObjectId;
 }

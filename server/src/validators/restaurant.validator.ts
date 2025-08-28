@@ -13,6 +13,8 @@ export const updateRestaurantValidators = async (
       description: Joi.string().optional(),
       locationCoord: Joi.array().items(Joi.number().required()).optional(),
       logo: Joi.string().optional(),
+      isOpen: Joi.boolean().optional(),
+      isAcceptingOrders: Joi.boolean().optional(),
     });
 
   return validators.validateAsync(reqBody, { abortEarly: false });

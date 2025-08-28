@@ -3,7 +3,13 @@ import {
   RoleEnums,
   VehicleTypeEnum,
 } from '../enums/enums';
-import { IAddress, IBaseUser, IMenuCategory } from '../models/models';
+import {
+  IAddress,
+  IBaseUser,
+  IMenuCategory,
+  IMenuItem,
+  IRestaurant,
+} from '../models/models';
 
 export interface ICustomerMutation {
   registerCustomer: {
@@ -85,6 +91,8 @@ export interface IRestaurantMutation {
     description?: string;
     locationCoord?: number[];
     logo?: string;
+    isOpen?: boolean;
+    isAcceptingOrders?: boolean;
   };
   addRestaurantDocument: {
     documentType: RestaurantDocumentTypeEnum;
@@ -222,6 +230,21 @@ export interface IMenuItemQuery {
   getAllMenuItem: {
     page?: number;
     limit?: number;
+  };
+}
+
+export interface ICartMutation {
+  addToCart: {
+    restaurantId: IRestaurant['_id'];
+    items: {
+      menuItemId: IMenuItem['_id'];
+      name: string;
+      price: number;
+      image?: string;
+      quantity: number;
+      selectedInstructions: string;
+      itemTotal: number;
+    }[];
   };
 }
 

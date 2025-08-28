@@ -19,7 +19,7 @@ restaurantRoutes
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
     MulterUploadImage.single('logo'),
-    RestaurantController.updateRestaurantDocumentController
+    RestaurantController.UpdateRestaurantInfoController
   );
 
 restaurantRoutes

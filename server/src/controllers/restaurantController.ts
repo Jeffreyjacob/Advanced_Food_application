@@ -44,6 +44,10 @@ export class RestaurantController {
           locationCoord: req.body.locationCoord,
         }),
         ...(logo && { logo }),
+        ...(req.body.isOpen && { isOpen: req.body.isOpen }),
+        ...(req.body.isAcceptingOrders && {
+          isAcceptingOrders: req.body.isAcceptingOrders,
+        }),
       };
 
       const validatedBody = await updateRestaurantValidators(parsedBody);

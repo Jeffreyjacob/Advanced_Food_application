@@ -1,11 +1,14 @@
+import mongoose from 'mongoose';
 import {
   RestaurantDocumentTypeEnum,
   RoleEnums,
+  updateCartItemTypeEnum,
   VehicleTypeEnum,
 } from '../enums/enums';
 import {
   IAddress,
   IBaseUser,
+  ICartItem,
   IMenuCategory,
   IMenuItem,
   IRestaurant,
@@ -238,13 +241,21 @@ export interface ICartMutation {
     restaurantId: IRestaurant['_id'];
     items: {
       menuItemId: IMenuItem['_id'];
+      variantId?: mongoose.Types.ObjectId;
       name: string;
-      price: number;
+      basePrice: number;
+      variantName?: string;
+      variantPrice?: number;
       image?: string;
       quantity: number;
-      selectedInstructions: string;
+      selectedInstructions?: string;
       itemTotal: number;
     }[];
+  };
+  updateCartItem: {
+    quantity?: number;
+    updateCartItemType: updateCartItemTypeEnum;
+    restaurantId: IRestaurant['_id'];
   };
 }
 

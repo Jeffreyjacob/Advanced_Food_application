@@ -77,3 +77,36 @@ export enum expiryDocumentTypeEnum {
   driverLicense = 'driverLicense',
   vehicleRegistration = 'vehicleRegistration',
 }
+
+export enum updateCartItemTypeEnum {
+  updateQuantity = 'updateQuantity',
+  removeCartItem = 'removeCartItem',
+}
+
+export enum OrderStatusEnum {
+  awaiting_payment = 'awaiting_payment',
+  pending_restaurant_acceptance = 'pending_restaurant_acceptance',
+  preparing = 'preparing',
+  ready_for_pickup = 'ready_for_pickup',
+  driver_assigned = 'driver_assigned',
+  picked_up = 'picked_up',
+  delivering = 'delivering',
+  delivered = 'delivered',
+  cancelled = 'cancelled',
+  refunded = 'refunded',
+}
+
+export enum StripePaymentStatus {
+  pending = 'pending',
+  succeeded = 'succeded',
+  failed = 'failed',
+  cancelled = 'cancelled',
+  refunded = 'refunded',
+}
+
+export enum RequestStatusEnum {
+  pending = 'pending',
+  accepted = 'accepted',
+  rejected = 'rejected',
+  expired = 'expired',
+}

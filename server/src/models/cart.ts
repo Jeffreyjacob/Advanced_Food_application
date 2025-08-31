@@ -1,21 +1,22 @@
 import mongoose, { model, Schema } from 'mongoose';
-import { ICart } from '../interface/models/models';
+import { ICart, ICartItem } from '../interface/models/models';
 
-const item = {
+const item: Schema<ICartItem> = new Schema({
   menuItemId: {
     type: Schema.Types.ObjectId,
     ref: 'menuItems',
     required: true,
   },
   variantId: {
-    type: String,
+    type: Schema.Types.ObjectId,
   },
   name: {
     type: String,
     required: true,
   },
-  price: {
+  basePrice: {
     type: Number,
+    required: true,
     min: 0,
   },
   image: {
@@ -26,6 +27,11 @@ const item = {
     min: 0,
     required: true,
   },
+  variantName: String,
+  variantPrice: {
+    type: Number,
+    min: 0,
+  },
   selectedInstructions: {
     type: String,
   },
@@ -33,11 +39,11 @@ const item = {
     type: Number,
     min: 0,
   },
-};
+});
 
 const CartSchema: Schema<ICart> = new Schema(
   {
-    custmerId: {
+    customerId: {
       type: Schema.Types.ObjectId,
       ref: 'customers',
       required: true,
@@ -48,28 +54,20 @@ const CartSchema: Schema<ICart> = new Schema(
       required: true,
     },
     items: [item],
-    subtotal: {
-      type: Number,
-    },
-    itemCount: {
-      type: Number,
-    },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-CartSchema.pre('save', async function (next) {
-  if (this.items.length > 0) {
-    this.subtotal = this.items.reduce(
-      (accum, item) => accum + item.itemTotal,
-      0
-    );
-    this.itemCount = this.items.length;
-    next();
-  }
-  next();
+CartSchema.virtual('subTotal').get(function (this: ICart) {
+  return this.items.reduce((acc, item) => acc + item.itemTotal, 0);
+});
+
+CartSchema.virtual('itemCount').get(function (this: ICart) {
+  return this.items.reduce((acc, item) => acc + item.quantity, 0);
 });
 
 CartSchema.index({ customerId: 1, restaurantId: 1 });

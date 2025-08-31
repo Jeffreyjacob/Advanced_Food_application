@@ -2,10 +2,13 @@ import mongoose, { Document, Mongoose } from 'mongoose';
 import {
   DocumentStatusEnum,
   IdentityVerificationStatusEnum,
+  OrderStatusEnum,
+  RequestStatusEnum,
   RestaurantVerificationStatusEnum,
   RoleEnums,
   StripeAccountStatusEnum,
   StripeAccountType,
+  StripePaymentStatus,
   VehicleTypeEnum,
 } from '../enums/enums';
 
@@ -202,7 +205,7 @@ export interface IToken extends Document {
   isExpiresAt: Date;
 }
 
-export interface IMenuCategory {
+export interface IMenuCategory extends Document {
   _id: mongoose.Types.ObjectId;
   restaurantId: IRestaurant['_id'];
   name: string;
@@ -211,7 +214,7 @@ export interface IMenuCategory {
   isActive: boolean;
 }
 
-export interface IMenuItem {
+export interface IMenuItem extends Document {
   _id: mongoose.Types.ObjectId;
   restaurantId: IRestaurant['_id'];
   categoryId: IMenuCategory['_id'];
@@ -221,8 +224,9 @@ export interface IMenuItem {
   image: string;
   preparationTime: number;
   variants: {
+    _id?: mongoose.Types.ObjectId;
     name: string;
-    price: string;
+    price: number;
     description: string;
   }[];
   isVegetarian: boolean;
@@ -235,24 +239,130 @@ export interface IMenuItem {
   orderCount: number;
 }
 
-export interface ICart {
-  _id: mongoose.Types.ObjectId;
-  custmerId: ICustomer['_id'];
-  restaurantId: IRestaurant['_id'];
-  items: {
-    menuItemId: IMenuItem['_id'];
-    variantId: mongoose.Types.ObjectId;
-    name: string;
-    price: number;
-    image: string;
-    quantity: number;
-    selectedInstructions: string;
-    itemTotal: number;
-  }[];
-  subtotal: number;
-  itemCount: number;
+export interface ICartItem {
+  _id?: mongoose.Types.ObjectId;
+  menuItemId: IMenuItem['_id'];
+  variantId?: mongoose.Types.ObjectId;
+  variantName?: string;
+  variantPrice?: number;
+  name: string;
+  basePrice: number;
+  image?: string;
+  quantity: number;
+  selectedInstructions?: string;
+  itemTotal: number;
 }
 
-export interface IOrder {
+export interface ICart extends Document {
   _id: mongoose.Types.ObjectId;
+  customerId: ICustomer['_id'];
+  restaurantId: IRestaurant['_id'];
+  items: ICartItem[];
+  subtotal?: number;
+  itemCount?: number;
+}
+
+export interface IOrder extends Document {
+  _id: mongoose.Types.ObjectId;
+  customerId: ICustomer['_id'];
+  customerDetails: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  restaurantId: IRestaurant['_id'];
+  restaurantDetails: {
+    name: string;
+    phone: string;
+    address: string;
+  };
+  driverId: IDriver['_id'];
+  driverDetails: {
+    name: string;
+    phone: string;
+    vehicleInfo: {
+      type: string;
+      plateNumber: string;
+    };
+  };
+  items: ICartItem[];
+  deliveryAddress: IAddress['_id'];
+  pricing: {
+    subtotal: number;
+    deliveryFee: number;
+    serviceFee: number;
+    tip: number;
+    total: number;
+  };
+  deliveryMetrics: {
+    distanceKm: number;
+    estimatedPreptime: number;
+    estimatedDeliveryTime: number;
+    actualPrepTime: number;
+    actualDeliveryTime: number;
+  };
+  status: OrderStatusEnum;
+  statusHistory: [
+    {
+      status: string;
+      note: string;
+    },
+  ];
+  payment: {
+    stripeSessionId: string;
+    stripePaymentintentId: string;
+    paymentStatus: StripePaymentStatus;
+    paymentMethod: string;
+    paidAt: Date;
+    refundedAt: Date;
+  };
+  payout: {
+    restaurantAmount: number;
+    driverAmount: number;
+    platformFee: number;
+    restaurantPaidOut: boolean;
+    driverPaidOut: boolean;
+    payoutDate: Date;
+  };
+  specialInstructions: string;
+  restaurantNotes: string;
+  driverNotes: string;
+  orderPlacedAt: Date;
+  acceptedAt: Date;
+  readyAt: Date;
+  pickedUpAt: Date;
+  deliveredAt: Date;
+  cancellation: {
+    cancelledBy: RoleEnums;
+    reason: string;
+    cancelledAt: Date;
+    refundAmount: Number;
+  };
+  rating: {
+    restaurantRating: number;
+    driverRating: number;
+    overallRating: number;
+  };
+}
+
+export interface IBaseRequest extends Document {
+  _id: mongoose.Types.ObjectId;
+  orderId: IOrder['_id'];
+  requestStatus: RequestStatusEnum;
+  rejectionReason: string;
+  respondedAt: Date;
+  expiresAt: Date;
+}
+
+export interface RestaurantRequest extends IBaseRequest {
+  restaurantId: IRestaurant['_id'];
+  restaurantOwnder: IRestaurantOwner['_id'];
+  estimatedPrepTime: number;
+}
+
+export interface driverRequest extends IBaseRequest {
+  driver: IDriver['_id'];
+  distanceFromRestaurant: number;
+  distanceToCustomer: number;
+  estimatedPickupTime: number;
 }

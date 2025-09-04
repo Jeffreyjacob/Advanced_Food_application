@@ -5,6 +5,8 @@ import {
 } from '../interface/enums/enums';
 import { stripe } from '../config/stripe';
 import { IOrder, IRestaurant } from '../interface/models/models';
+import { Order } from '../models/order';
+import { retryRefundPayment } from '../queue/retryRefundPayment/queue';
 
 export const generateOtp = () => {
   return Math.floor(10000 + Math.random() * 90000);
@@ -271,4 +273,119 @@ export const findingADriver = async (
   try {
     const assignedDriver: string[] = [];
   } catch (error: any) {}
+};
+
+export const calculateDeliveryRate = (distance: number) => {
+  const baseFee = 2; // two dollar
+  const perKmFee = 0.45; // price per km
+
+  const deliveryRate = baseFee + perKmFee * (distance + 3.5);
+  return deliveryRate;
+};
+
+export const handleRefundedAndTransfer = async ({
+  order,
+  restaurantStripeId,
+  refundAmount,
+  transferAmount,
+  refundReason,
+  transferType,
+}: {
+  order: IOrder;
+  restaurantStripeId?: string;
+  refundAmount?: number;
+  transferAmount?: number;
+  refundReason?: string;
+  transferType?: string;
+}) => {
+  try {
+    const results: {
+      refund?: Stripe.Response<Stripe.Refund>;
+      transfer?: Stripe.Response<Stripe.Transfer>;
+    } = {};
+
+    if (refundAmount && order.payment.stripePaymentintentId) {
+      results.refund = await stripe.refunds.create(
+        {
+          payment_intent: order.payment.stripePaymentintentId,
+          amount: refundAmount,
+          reason: 'requested_by_customer',
+          metadata: {
+            order_id: order._id.toString(),
+            refund_reason: refundReason || 'system_refund',
+          },
+        },
+        {
+          idempotencyKey: `refund_${order._id.toString()}_${refundReason}`,
+        }
+      );
+    }
+
+    if (transferAmount && restaurantStripeId) {
+      results.transfer = await stripe.transfers.create(
+        {
+          amount: transferAmount,
+          currency: 'usd',
+          destination: restaurantStripeId,
+          description: `Payout for order ${order._id.toString()}`,
+          metadata: {
+            order_id: order._id.toString(),
+            restaurant_id: order.restaurantId.toString(),
+            transfer_type: transferType || 'system_payout',
+          },
+        },
+        {
+          idempotencyKey: `transfer_${order._id.toString()}_${transferType}`,
+        }
+      );
+
+      await Order.updateOne(
+        {
+          _id: order._id,
+        },
+        {
+          $set: {
+            'payout.restaurantAmount': transferAmount
+              ? transferAmount / 100
+              : 0,
+            'payout.driverAmount': 0,
+            'payout.restaurantPaidOut': !!results.transfer,
+            'payout.driverPaidOut': false,
+            'payout.payoutDate': new Date(),
+            'payout.refundId': results.refund?.id,
+            'payout.lastAttempt': new Date(),
+            'payout.retryNeeded': false,
+            'payout.restaurantTransferId': results.transfer?.id,
+          },
+        }
+      );
+    }
+    return results;
+  } catch (err: any) {
+    await Order.updateOne(
+      {
+        _id: order._id,
+      },
+      {
+        $set: {
+          'payout.retryNeeded': true,
+          'payout.lastAttempt': new Date(),
+        },
+        $inc: {
+          'payout.retryCount': 1,
+        },
+      }
+    );
+
+    await retryRefundPayment.add(
+      'retryRefundPayment',
+      {
+        orderId: order._id,
+        refundType: 'delivery_refund',
+      },
+      {
+        delay: 15 * 60 * 1000,
+      }
+    );
+  }
 };

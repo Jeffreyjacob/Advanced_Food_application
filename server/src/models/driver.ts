@@ -99,6 +99,10 @@ const DriverSchema: Schema<IDriver> = new Schema(
       type: Boolean,
       default: false,
     },
+    avaliableForPickup: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

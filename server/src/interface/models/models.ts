@@ -286,7 +286,7 @@ export interface IOrder extends Document {
     };
   };
   items: ICartItem[];
-  deliveryAddress: IAddress['_id'];
+  deliveryAddress: IAddress;
   pricing: {
     subtotal: number;
     deliveryFee: number;
@@ -306,6 +306,7 @@ export interface IOrder extends Document {
     {
       status: string;
       note: string;
+      timestamp: Date;
     },
   ];
   payment: {
@@ -315,7 +316,11 @@ export interface IOrder extends Document {
     paymentMethod: string;
     paidAt: Date;
     refundedAt: Date;
+    sessionCreatedAt: Date;
+    sessionExpiredAt: Date;
   };
+  idempotencyKey: string;
+  sessionExpirationJobId?: string;
   payout: {
     restaurantAmount: number;
     driverAmount: number;
@@ -323,6 +328,12 @@ export interface IOrder extends Document {
     restaurantPaidOut: boolean;
     driverPaidOut: boolean;
     payoutDate: Date;
+    refundId?: string;
+    lastAttempt?: Date;
+    retryNeeded: boolean;
+    restaurantTransferId?: string;
+    driverTransferId?: string;
+    retryCount: number;
   };
   specialInstructions: string;
   restaurantNotes: string;
@@ -343,6 +354,7 @@ export interface IOrder extends Document {
     driverRating: number;
     overallRating: number;
   };
+  retryFindDriver: number;
 }
 
 export interface IBaseRequest extends Document {
@@ -350,19 +362,23 @@ export interface IBaseRequest extends Document {
   orderId: IOrder['_id'];
   requestStatus: RequestStatusEnum;
   rejectionReason: string;
+  requestJobId: string;
   respondedAt: Date;
   expiresAt: Date;
 }
 
-export interface RestaurantRequest extends IBaseRequest {
+export interface IRestaurantRequest extends IBaseRequest {
   restaurantId: IRestaurant['_id'];
-  restaurantOwnder: IRestaurantOwner['_id'];
+  restaurantOwner: IRestaurantOwner['_id'];
   estimatedPrepTime: number;
 }
 
-export interface driverRequest extends IBaseRequest {
+export interface IDriverRequest extends IBaseRequest {
   driver: IDriver['_id'];
-  distanceFromRestaurant: number;
+  restaurantLocation: {
+    type: string;
+    coordinates: number[];
+  };
   distanceToCustomer: number;
-  estimatedPickupTime: number;
+  estimatedPickupTime: Date;
 }

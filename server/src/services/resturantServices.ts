@@ -221,7 +221,7 @@ export class RestaurantServies {
           businessName: findRestaurant.name,
         },
         {
-          delay: 4 * 60 * 100,
+          delay: 4 * 60 * 1000,
         }
       );
     } else if (

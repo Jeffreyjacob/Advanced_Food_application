@@ -94,6 +94,8 @@ export enum OrderStatusEnum {
   delivered = 'delivered',
   cancelled = 'cancelled',
   refunded = 'refunded',
+  no_drivers_available = 'no_drivers_available',
+  payment_expired = 'payment_expired',
 }
 
 export enum StripePaymentStatus {
@@ -102,6 +104,7 @@ export enum StripePaymentStatus {
   failed = 'failed',
   cancelled = 'cancelled',
   refunded = 'refunded',
+  expired = 'expired',
 }
 
 export enum RequestStatusEnum {

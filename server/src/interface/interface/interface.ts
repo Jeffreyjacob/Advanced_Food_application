@@ -259,6 +259,12 @@ export interface ICartMutation {
   };
 }
 
+export interface IOrderMutation {
+  createCheckoutSession: {
+    address: IAddress;
+  };
+}
+
 export interface IDriverQuery {}
 export interface IRestaurantOwnerQuery {}
 export interface ICustomerQuery {

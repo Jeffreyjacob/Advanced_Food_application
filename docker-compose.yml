@@ -21,12 +21,13 @@ services:
       - ./server/.env
     environment:
       - NODE_ENV=development
-      - DEV_MONGODB_URI=mongodb://mongo:27017/FoodDelivery
+      - DEV_MONGODB_URI=mongodb://mongo:27017/FoodDelivery?replicaSet=rs0
     command: npm run dev
 
   mongo:
     image: mongo:6.0
     container_name: mongo
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "27018:27017"
     volumes:

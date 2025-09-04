@@ -87,7 +87,7 @@ const expiredRequestWorker = new Worker(
           await emailQueue.add('Request Expired', {
             to: order.customerDetails.email,
             subject: 'Order Request Expired',
-            html: html,
+            body: html,
             template: 'Order Request Expired ',
           });
 

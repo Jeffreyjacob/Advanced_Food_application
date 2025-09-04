@@ -18,6 +18,7 @@ import walletRoutes from './routes/walletRoutes';
 import driverRouter from './routes/driverRoutes';
 import { handleVerificationIdentityWebhook } from './webhooks/stripeIdentityWebhook';
 import cartRouter from './routes/cartRoute';
+import orderRoute from './routes/orderRoute';
 
 const limiter = rateLimit({
   windowMs: config.security.rateLimit.windowMs,
@@ -77,6 +78,7 @@ const StartServer = async () => {
   app.use(`${config.apiPrefix}/wallet`, walletRoutes);
   app.use(`${config.apiPrefix}/driver`, driverRouter);
   app.use(`${config.apiPrefix}/cart`, cartRouter);
+  app.use(`${config.apiPrefix}/order`, orderRoute);
 
   app.use(ErrorHandler);
 

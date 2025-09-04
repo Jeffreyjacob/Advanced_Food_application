@@ -66,19 +66,19 @@ export const CreateOrderHTML = ({
           <table role="presentation" width="100%">
             <tr>
               <td>Subtotal</td>
-              <td align="right">$${subtotal.toFixed(2)}</td>
+              <td align="right">$${subtotal}</td>
             </tr>
             <tr>
               <td>Delivery Fee</td>
-              <td align="right">$${deliveryFee.toFixed(2)}</td>
+              <td align="right">$${deliveryFee}</td>
             </tr>
             <tr>
               <td>Tip</td>
-              <td align="right">$${tip.toFixed(2)}</td>
+              <td align="right">$${tip}</td>
             </tr>
             <tr style="font-weight:bold; border-top:1px solid #ddd;">
               <td>Total</td>
-              <td align="right">$${total.toFixed(2)}</td>
+              <td align="right">$${total}</td>
             </tr>
           </table>
 

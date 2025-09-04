@@ -65,40 +65,6 @@ const expiredCheckoutSessionWorer = new Worker(
         { session: mongoSession }
       );
 
-      const restaurantRequest = await RestaurantRequest.findOne({ orderId });
-
-      if (restaurantRequest) {
-        if (restaurantRequest.requestJobId) {
-          try {
-            const exipredRequestJob = await expiredRequestQueue.getJob(
-              restaurantRequest.requestJobId
-            );
-            if (exipredRequestJob) {
-              await exipredRequestJob.remove();
-            }
-            console.log(
-              `Removed restaurant request job: ${restaurantRequest.requestJobId}`
-            );
-          } catch (error) {
-            console.log(`Could not remove restaurant job: ${error}`);
-          }
-        }
-      }
-
-      await RestaurantRequest.updateOne(
-        {
-          _id: restaurantRequest?._id,
-        },
-        {
-          $set: {
-            requestStatus: OrderStatusEnum.cancelled,
-          },
-        },
-        {
-          session: mongoSession,
-        }
-      );
-
       await mongoSession.commitTransaction();
     } catch (error: any) {
       await mongoSession.abortTransaction();
@@ -115,3 +81,23 @@ const expiredCheckoutSessionWorer = new Worker(
     removeOnFail: { count: 50 },
   }
 );
+
+expiredCheckoutSessionWorer.on('completed', (job) => {
+  console.log(`expiredCheckoutSession with id ${job?.id} completed`);
+});
+
+expiredCheckoutSessionWorer.on('failed', (job, error) => {
+  console.error(`expiredCheckoutSession with id ${job?.id} failed`, error);
+});
+
+expiredCheckoutSessionWorer.on('progress', (job, progress) => {
+  console.log(`expiredCheckoutSession with id ${job?.id} progress`, progress);
+});
+
+process.on('SIGTERM', async () => {
+  console.log(`Shutting down expired expiredCheckoutSession worker`);
+  await expiredCheckoutSessionWorer.close();
+  await redisConnection.quit();
+});
+
+export { expiredCheckoutSessionWorer };

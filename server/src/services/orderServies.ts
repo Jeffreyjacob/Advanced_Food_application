@@ -9,7 +9,7 @@ import { Customer } from '../models/customer';
 import { Restaurant } from '../models/restaurant';
 import { RestaurantOwner } from '../models/restaurantOwner';
 import { calculateDeliveryRate } from '../utils/helper';
-import { OrderStatusEnum } from '../interface/enums/enums';
+import { OrderStatusEnum, RequestStatusEnum } from '../interface/enums/enums';
 import { RestaurantRequest } from '../models/restaurantRequest';
 import { expiredRequestQueue } from '../queue/expiredRequest/queue';
 import { stripe } from '../config/stripe';
@@ -145,11 +145,13 @@ export class OrderServices {
               phone: restaurantOwner?.phone,
             },
             items: cart.items,
-            deliveryAddress: data.address,
+            deliveryAddress: {
+              ...data.address,
+            },
             pricing: {
               subtotal: subTotal,
-              deliveryFee: deliveryFee,
-              total: totalCost,
+              deliveryFee: Math.round(deliveryFee),
+              total: Math.round(totalCost),
             },
             deliveryMetrics: {
               distanceKm: customerDistanceFromRestaurant[0].distanceInKm,
@@ -174,20 +176,36 @@ export class OrderServices {
 
       // creating request which would be sent to the restaurant
 
-      const createRestaurantRequest = await RestaurantRequest.create({
-        orderId: order._id,
-        restauarantId: restaurant._id,
-        estimatedPrepTime: estimatedPrepTime,
-        restaurantOwner: restaurantOwner?._id,
-        requestStatus: OrderStatusEnum.pending_restaurant_acceptance,
-      });
+      const newRestaurantRequest = await RestaurantRequest.create(
+        [
+          {
+            orderId: order._id,
+            restaurantId: restaurant._id,
+            estimatedPrepTime: estimatedPrepTime,
+            restaurantOwner: restaurantOwner?._id,
+            requestStatus: RequestStatusEnum.pending,
+          },
+        ],
+        {
+          session,
+        }
+      );
+
+      const createRestaurantRequest = newRestaurantRequest[0];
 
       // schedule worker to update the reques to expired and refunded customer, if request is accepted / rejected by the restaurant before the specificed request time
-      const requestJobId = await expiredRequestQueue.add('expiredRequest', {
-        orderId: order._id,
-        requestId: createRestaurantRequest._id,
-        requestType: 'Restaurant',
-      });
+      const requestJobId = await expiredRequestQueue.add(
+        'expiredRequest',
+        {
+          orderId: order._id,
+          requestId: createRestaurantRequest._id,
+          requestType: 'Restaurant',
+        },
+        {
+          delay:
+            new Date(createRestaurantRequest.expiresAt).getTime() - Date.now(),
+        }
+      );
 
       // update requestJoId
 
@@ -196,32 +214,38 @@ export class OrderServices {
           _id: createRestaurantRequest._id,
         },
         {
-          requestJobId: requestJobId,
+          requestJobId: requestJobId?.id,
+        },
+        {
+          session,
         }
       );
 
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
-        await Promise.all(
-          cart.items.map(async (cartItem) => {
-            return {
-              price_data: {
-                currency: 'usd',
-                product_data: {
-                  name: cartItem.name,
-                  variantName: cartItem.variantName,
-                  images: cartItem.image ? [cartItem.image] : undefined,
-                  metadata: {
-                    itemId: cartItem.menuItemId.toString(),
-                    restaurantId: order.restaurantId.toString(),
-                    variantId: cartItem.variantId?.toString() || '',
-                  },
+        cart.items.map((cartItem) => {
+          const unitprice =
+            cartItem.variantId && cartItem.variantPrice
+              ? cartItem.basePrice + cartItem.variantPrice
+              : cartItem.basePrice;
+          return {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: cartItem.name,
+                images: cartItem.image ? [cartItem.image] : undefined,
+                description: `variant: ${cartItem.variantName}`,
+                metadata: {
+                  itemId: cartItem.menuItemId.toString(),
+                  restaurantId: order.restaurantId.toString(),
+                  variantId: cartItem.variantId?.toString() || '',
+                  variantName: cartItem.variantName || '',
                 },
-                unit_amount: Math.round((cartItem.itemTotal || 0) * 100),
               },
-              quantity: cartItem.quantity,
-            };
-          })
-        );
+              unit_amount: Math.round((unitprice || 0) * 100),
+            },
+            quantity: cartItem.quantity,
+          };
+        });
 
       if (deliveryFee > 0) {
         lineItems.push({
@@ -229,10 +253,7 @@ export class OrderServices {
             currency: 'usd',
             product_data: {
               name: 'Delivery Fee',
-              metadata: {
-                type: 'delivery_fee',
-                orderId: order._id.toString(),
-              },
+              description: 'Delivery fee',
             },
             unit_amount: Math.round(deliveryFee * 100),
           },
@@ -246,10 +267,10 @@ export class OrderServices {
           payment_method_types: ['card'],
           line_items: lineItems,
           expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
-          success_url: `${config.frontendUrls}/api/v1/order/successUrl`,
-          cancel_url: `${config.frontendUrls}/cart?cancelled=true`,
+          success_url: `http://localhost:8000/api/v1/order/successUrl`,
+          cancel_url: `http://localhost:3000/cart?cancelled=true`,
           metadata: {
-            orderId: userId.toString(),
+            orderId: order._id.toString(),
             userId: userId.toString(),
           },
           payment_intent_data: {
@@ -281,11 +302,11 @@ export class OrderServices {
       const html = CreateOrderHTML({
         customerName: order.customerDetails.name,
         orderId: order._id.toString(),
-        restaurantName: order.customerDetails.name,
+        restaurantName: order.restaurantDetails.name,
         items: order.items,
         subtotal: order.pricing.subtotal,
         deliveryFee: order.pricing.deliveryFee,
-        tip: order.pricing.tip,
+        tip: order.pricing.tip ? order.pricing.tip : 0,
         total: order.pricing.total,
       });
 

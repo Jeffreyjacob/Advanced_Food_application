@@ -52,6 +52,7 @@ const retryFindDriver = new Worker(
       const radiusKm = 5 * 1000;
       const nearByDriver = await Driver.find({
         isOnline: true,
+        banned: false,
         verificationStatus: RestaurantVerificationStatusEnum.Approved,
         avaliableForPickup: true,
         _id: { $nin: previousDrivers },
@@ -87,7 +88,7 @@ const retryFindDriver = new Worker(
           await emailQueue.add('email', {
             to: order.customerDetails.email,
             subject: 'Order update',
-            html: customerHtml,
+            body: customerHtml,
             template: 'Order update',
           });
 

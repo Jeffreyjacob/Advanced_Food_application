@@ -198,6 +198,9 @@ export class CustomerService {
     const totalPages = Math.ceil(totalCount / limit);
 
     const restaurant = await Restaurant.find({
+      isOpen: true,
+      isAcceptingOrders: true,
+      banned: false,
       ...nearBy,
       ...name,
       ...cusine,

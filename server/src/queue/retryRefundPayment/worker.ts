@@ -7,37 +7,52 @@ import { stripe } from '../../config/stripe';
 import { AppError } from '../../utils/appError';
 import { OrderStatusEnum, RoleEnums } from '../../interface/enums/enums';
 import { retryRefundPayment } from './queue';
+import Stripe from 'stripe';
 
 interface RetryRefundData {
   orderId: IOrder['_id'];
   refundType: 'full_refund' | 'delivery_refund';
+  reason?: string;
 }
 
 const retryRefundPaymentWorker = new Worker(
   'retryRefundPayment',
   async (job: Job<RetryRefundData>) => {
-    const { orderId, refundType } = job.data;
+    const { orderId, refundType, reason } = job.data;
 
     const order = await Order.findById(orderId);
     if (!order) {
       throw new AppError('order was not found', 404);
     }
+
+    if (!order.payout.retryNeeded) {
+      console.log(`Order ${orderId} refund already processed or cancelled`);
+      return;
+    }
+    if (order.payout.refundId) {
+      console.log(
+        `Order ${orderId} already has refundId=${order.payout.refundId}`
+      );
+      return;
+    }
     try {
-      let refund = null;
+      let refund: Stripe.Response<Stripe.Refund> | null = null;
       if (refundType === 'full_refund' && order.payout.retryNeeded) {
         if (order.payment.stripePaymentintentId) {
           refund = await stripe.refunds.create(
             {
               payment_intent: order.payment.stripePaymentintentId,
               amount: Math.round(order.pricing.total * 100),
-              reason: 'requested_by_customer',
+              reason:
+                (reason as Stripe.RefundCreateParams.Reason) ||
+                'requested_by_customer',
               metadata: {
                 order_id: order._id.toString(),
-                refund_reason: 'expired_restaurant_request',
+                refund_reason: reason || 'expired_restaurant_request',
               },
             },
             {
-              idempotencyKey: `refund_${order._id.toString()}_expired_restaurant_request`,
+              idempotencyKey: `refund_${order._id}_${reason || 'expired_restaurant_request'}`,
             }
           );
         }
@@ -52,7 +67,7 @@ const retryRefundPaymentWorker = new Worker(
               status: OrderStatusEnum.cancelled,
               cancellation: {
                 cancelledBy: RoleEnums.Admin,
-                reason: 'Restaurant request expired',
+                reason: reason ? reason : 'Restaurant request expired',
                 cancelledAt: new Date(),
                 refundedAmount: order.pricing.total,
               },
@@ -65,34 +80,38 @@ const retryRefundPaymentWorker = new Worker(
         );
         return { success: 'success refund retry' };
       } else if (refundType === 'delivery_refund' && order.payout.retryNeeded) {
-        refund = await stripe.refunds.create(
-          {
-            payment_intent: order.payment.stripePaymentintentId,
-            amount: Math.round(order.pricing.deliveryFee * 100),
-            reason: 'requested_by_customer',
-            metadata: {
-              order_id: order._id.toString(),
-              refund_reason: 'system_refund',
+        if (order.payment.stripePaymentintentId) {
+          refund = await stripe.refunds.create(
+            {
+              payment_intent: order.payment.stripePaymentintentId,
+              amount: Math.round(order.pricing.deliveryFee * 100),
+              reason:
+                (reason as Stripe.RefundCreateParams.Reason) ||
+                'requested_by_customer',
+              metadata: {
+                order_id: order._id.toString(),
+                refund_reason: reason || 'no_driver_available_pickup',
+              },
             },
-          },
-          {
-            idempotencyKey: `refund_${order._id.toString()}_no_driver_available_pickup`,
-          }
-        );
+            {
+              idempotencyKey: `refund_${order._id}_${reason || 'no_driver_available_pickup'}`,
+            }
+          );
 
-        await Order.updateOne(
-          {
-            _id: order._id,
-          },
-          {
-            $set: {
-              'payout.refundId': refund?.id,
-              'payout.lastAttempt': new Date(),
-              'payout.retryNeeded': false,
-              'payout.retryCount': 0,
+          await Order.updateOne(
+            {
+              _id: order._id,
             },
-          }
-        );
+            {
+              $set: {
+                'payout.refundId': refund?.id,
+                'payout.lastAttempt': new Date(),
+                'payout.retryNeeded': false,
+                'payout.retryCount': 0,
+              },
+            }
+          );
+        }
       }
     } catch (error: any) {
       if (order.payout.retryCount >= 5) {

@@ -164,6 +164,7 @@ const OrderSchema: Schema<IOrder> = new Schema(
     payment: {
       stripeSessionId: String,
       stripePaymentintentId: String,
+      stripeChargeId: String,
       paymentStatus: {
         type: String,
         enum: StripePaymentStatus,

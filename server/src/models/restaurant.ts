@@ -119,6 +119,10 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
       type: Boolean,
       default: false,
     },
+    banned: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

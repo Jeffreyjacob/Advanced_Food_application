@@ -39,14 +39,14 @@ export const CreateOrderHTML = ({
   <html>
   <head>
     <meta charset="utf-8">
-    <title>Order Confirmation</title>
+    <title>Order has been Placed</title>
   </head>
   <body style="font-family: Arial, sans-serif; background:#f9fafb; padding:20px;">
     <table role="presentation" width="100%" style="max-width:600px; margin:auto; background:#fff; border-radius:8px; padding:20px; border:1px solid #eee;">
       <tr>
         <td>
-          <h2 style="margin-top:0;">Hi ${customerName}, your order is confirmed 🎉</h2>
-          <p>Order <strong>#${orderId}</strong> has been placed at <strong>${restaurantName}</strong>.</p>
+          <h2 style="margin-top:0;">Hi ${customerName}, your order has been placed 🎉</h2>
+          <p>Order <strong>#${orderId}</strong> has been placed, once your payment is confirmed, we will send your order to <strong>${restaurantName}</strong>.</p>
 
           <h3 style="margin-top:24px;">Items</h3>
           <table role="presentation" width="100%" style="border-collapse:collapse;">

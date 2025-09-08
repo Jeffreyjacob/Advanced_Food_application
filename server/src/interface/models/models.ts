@@ -108,6 +108,7 @@ export interface IRestaurant extends Document {
   walletSetup: Boolean;
   walletCreated: Boolean;
   isLive: boolean;
+  banned: boolean;
 }
 
 export interface IDriver extends IBaseUser {
@@ -156,6 +157,7 @@ export interface IDriver extends IBaseUser {
   isOnline: boolean;
   walletCreated: boolean;
   walletSetup: boolean;
+  banned: boolean;
 }
 
 export interface IWallet extends Document {
@@ -312,6 +314,7 @@ export interface IOrder extends Document {
   payment: {
     stripeSessionId: string;
     stripePaymentintentId: string;
+    stripeChargeId: string;
     paymentStatus: StripePaymentStatus;
     paymentMethod: string;
     paidAt: Date;
@@ -381,4 +384,12 @@ export interface IDriverRequest extends IBaseRequest {
   };
   distanceToCustomer: number;
   estimatedPickupTime: Date;
+}
+
+export interface IRejectedTracker extends Document {
+  _id: mongoose.Types.ObjectId;
+  userId: IBaseUser['_id'];
+  userType: RoleEnums;
+  orderId: IOrder['_id'];
+  rejectedAt: Date;
 }

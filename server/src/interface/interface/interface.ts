@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import {
+  RequestStatusEnum,
   RestaurantDocumentTypeEnum,
   RoleEnums,
   updateCartItemTypeEnum,
@@ -12,6 +13,7 @@ import {
   IMenuCategory,
   IMenuItem,
   IRestaurant,
+  IRestaurantRequest,
 } from '../models/models';
 
 export interface ICustomerMutation {
@@ -262,6 +264,10 @@ export interface ICartMutation {
 export interface IOrderMutation {
   createCheckoutSession: {
     address: IAddress;
+  };
+  updateRestaurantRequest: {
+    reason: string;
+    status: RequestStatusEnum;
   };
 }
 

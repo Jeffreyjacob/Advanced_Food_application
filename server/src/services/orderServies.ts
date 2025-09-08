@@ -1,6 +1,11 @@
 import Stripe from 'stripe';
 import { IOrderMutation } from '../interface/interface/interface';
-import { ICustomer, IOrder } from '../interface/models/models';
+import {
+  ICustomer,
+  IOrder,
+  IRestaurantOwner,
+  IRestaurantRequest,
+} from '../interface/models/models';
 import { Cart } from '../models/cart';
 import { AppError } from '../utils/appError';
 import mongoose from 'mongoose';
@@ -9,14 +14,25 @@ import { Customer } from '../models/customer';
 import { Restaurant } from '../models/restaurant';
 import { RestaurantOwner } from '../models/restaurantOwner';
 import { calculateDeliveryRate } from '../utils/helper';
-import { OrderStatusEnum, RequestStatusEnum } from '../interface/enums/enums';
-import { RestaurantRequest } from '../models/restaurantRequest';
-import { expiredRequestQueue } from '../queue/expiredRequest/queue';
+import {
+  OrderStatusEnum,
+  RequestStatusEnum,
+  RoleEnums,
+  StripePaymentStatus,
+} from '../interface/enums/enums';
 import { stripe } from '../config/stripe';
-import config from '../config/config';
 import { emailQueue } from '../queue/email/queue';
 import { CreateOrderHTML } from '../utils/EmailTemplate/createOrder';
 import { expiredCheckoutSession } from '../queue/expiredCheckoutSession/queue';
+import { RestaurantRequest } from '../models/restaurantRequest';
+import { expiredRequestQueue } from '../queue/expiredRequest/queue';
+import { OrderAccepted } from '../utils/EmailTemplate/orderAccepted';
+import { retryRefundPayment } from '../queue/retryRefundPayment/queue';
+import { RejectedTracker } from '../models/rejectedTracker';
+import { BannedUser } from '../queue/bannedUser/queue';
+import { BannedUserHtml } from '../utils/EmailTemplate/bannedUser';
+import { WarningBanEmailHTML } from '../utils/EmailTemplate/warningBanEmail';
+import { OrderRejectedEmailHTMl } from '../utils/EmailTemplate/orderjected';
 
 export class OrderServices {
   async createCheckoutSession({
@@ -174,53 +190,6 @@ export class OrderServices {
 
       const order = CreateOrder[0];
 
-      // creating request which would be sent to the restaurant
-
-      const newRestaurantRequest = await RestaurantRequest.create(
-        [
-          {
-            orderId: order._id,
-            restaurantId: restaurant._id,
-            estimatedPrepTime: estimatedPrepTime,
-            restaurantOwner: restaurantOwner?._id,
-            requestStatus: RequestStatusEnum.pending,
-          },
-        ],
-        {
-          session,
-        }
-      );
-
-      const createRestaurantRequest = newRestaurantRequest[0];
-
-      // schedule worker to update the reques to expired and refunded customer, if request is accepted / rejected by the restaurant before the specificed request time
-      const requestJobId = await expiredRequestQueue.add(
-        'expiredRequest',
-        {
-          orderId: order._id,
-          requestId: createRestaurantRequest._id,
-          requestType: 'Restaurant',
-        },
-        {
-          delay:
-            new Date(createRestaurantRequest.expiresAt).getTime() - Date.now(),
-        }
-      );
-
-      // update requestJoId
-
-      await RestaurantRequest.updateOne(
-        {
-          _id: createRestaurantRequest._id,
-        },
-        {
-          requestJobId: requestJobId?.id,
-        },
-        {
-          session,
-        }
-      );
-
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
         cart.items.map((cartItem) => {
           const unitprice =
@@ -312,9 +281,9 @@ export class OrderServices {
 
       await emailQueue.add('email', {
         to: order.customerDetails.email,
-        subject: 'Order Created',
+        subject: 'order placed',
         body: html,
-        template: 'Order Created',
+        template: 'order placed',
       });
 
       return { checkoutSession: checkoutSession, order };
@@ -326,4 +295,326 @@ export class OrderServices {
       session.endSession();
     }
   }
+
+  async updateRestaurantRequest({
+    userId,
+    requestId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    requestId: IRestaurantRequest['_id'];
+    data: IOrderMutation['updateRestaurantRequest'];
+  }) {
+    const request = await RestaurantRequest.findById(requestId);
+
+    if (!request) {
+      throw new AppError('Request was not found', 404);
+    }
+
+    // check if the request has expired
+    if (request.requestStatus === RequestStatusEnum.expired) {
+      throw new AppError(
+        `This request has expired, you can't updated it anymore`,
+        400
+      );
+    }
+
+    const order = await Order.findById(request.orderId);
+
+    if (!order) {
+      throw new AppError('Order was not found', 404);
+    }
+
+    const restaurant = await Restaurant.findById(order.restaurantId);
+
+    if (!restaurant) {
+      throw new AppError('Restaurant was not found', 404);
+    }
+
+    const restaurntOwner = await RestaurantOwner.findById(restaurant.owner);
+
+    if (
+      restaurant.banned &&
+      (data.status === RequestStatusEnum.accepted ||
+        data.status === RequestStatusEnum.rejected)
+    ) {
+      throw new AppError(
+        "You can't accepted or rejected request at the moment, your account is currenctly under 24 hours banned. ",
+        400
+      );
+    }
+
+    if (
+      data.status === RequestStatusEnum.accepted &&
+      request.requestStatus === RequestStatusEnum.pending &&
+      order.status === OrderStatusEnum.pending_restaurant_acceptance
+    ) {
+      const updateRequest = await RestaurantRequest.findOneAndUpdate(
+        {
+          _id: request._id,
+        },
+        {
+          $set: {
+            requestStatus: RequestStatusEnum.accepted,
+          },
+        }
+      );
+
+      if (!updateRequest) {
+        throw new AppError('Unable to update request', 400);
+      }
+
+      // remove expired request job
+
+      if (request.requestJobId) {
+        const requestJob = await expiredRequestQueue.getJob(
+          request.requestJobId
+        );
+
+        if (requestJob) {
+          await requestJob.remove();
+        }
+      }
+
+      // update Order
+
+      await Order.updateOne(
+        {
+          _id: order._id,
+        },
+        {
+          $set: {
+            status: OrderStatusEnum.preparing,
+            acceptedAt: new Date(),
+          },
+          $push: {
+            statusHistory: {
+              status: OrderStatusEnum.preparing,
+              note: 'Restaurant accepted order',
+              timestamp: new Date(),
+            },
+          },
+        }
+      );
+
+      const html = OrderAccepted({
+        restaurantName: order.restaurantDetails.name,
+        customerName: order.customerDetails.name,
+        preparationTime: request.estimatedPrepTime,
+        orderId: order._id.toString(),
+      });
+
+      await emailQueue.add('order accepted', {
+        to: order.customerDetails.email,
+        subject: `Your Order has been accepted from ${order.restaurantDetails.name}`,
+        body: html,
+        template: 'Your Order has been accepted',
+      });
+    } else if (
+      data.status === RequestStatusEnum.rejected &&
+      request.requestStatus === RequestStatusEnum.pending &&
+      order.status === OrderStatusEnum.pending_restaurant_acceptance
+    ) {
+      const updateRequest = await RestaurantRequest.findOneAndUpdate(
+        {
+          _id: request._id,
+        },
+        {
+          $set: {
+            requestStatus: RequestStatusEnum.rejected,
+            rejectionReason: data.reason ? data.reason : 'restaurant rejected',
+          },
+        }
+      );
+
+      if (!updateRequest) {
+        throw new AppError('Unable to update request', 404);
+      }
+
+      // refund the customer money back to them
+
+      let refund: Stripe.Response<Stripe.Refund> | null = null;
+      try {
+        if (
+          order.payment.stripePaymentintentId &&
+          order.payment.paymentStatus === StripePaymentStatus.succeeded
+        ) {
+          refund = await stripe.refunds.create(
+            {
+              payment_intent: order.payment.stripePaymentintentId,
+              amount: Math.round(order.pricing.total),
+              reason: 'requested_by_customer',
+              metadata: {
+                order_id: order._id.toString(),
+                refund_reason: data.reason || 'restaurant reject request',
+              },
+            },
+            {
+              idempotencyKey: `refund_${order._id}_restaurant_request_rejected`,
+            }
+          );
+        }
+
+        await Order.updateOne(
+          {
+            _id: order._id,
+          },
+          {
+            $set: {
+              status: OrderStatusEnum.cancelled,
+              cancellation: {
+                cancelledBy: RoleEnums.Restaurant_Owner,
+                reason: 'Restaurant request rejected',
+                cancelledAt: new Date(),
+                refundedAmount: order.pricing.total,
+              },
+              'payout.refundId': refund?.id,
+              'payout.retryNeeded': false,
+              'payout.lastAttempt': new Date(),
+              'payout.retryCount': 0,
+            },
+            $push: {
+              statusHistory: {
+                status: OrderStatusEnum.cancelled,
+                note: 'Restaurant rejected request',
+                timestamp: new Date(),
+              },
+            },
+          }
+        );
+      } catch (error: any) {
+        await Order.updateOne(
+          {
+            _id: order._id,
+          },
+          {
+            $set: {
+              'payout.retryNeeded': true,
+              'payout.lastAttempt': new Date(),
+            },
+            $inc: {
+              'payout.retryCount': 1,
+            },
+          }
+        );
+
+        await retryRefundPayment.add('retryRefundPayment', {
+          orderId: order._id,
+          refundType: 'full_refund',
+          reason: 'restaurant_request_rejected',
+        });
+      }
+
+      // remove expired request job
+
+      if (request.requestJobId) {
+        const requestJob = await expiredRequestQueue.getJob(
+          request.requestJobId
+        );
+
+        if (requestJob) {
+          await requestJob.remove();
+        }
+      }
+
+      // add reject order to restaurant list
+
+      const newRejectedRequest = await RejectedTracker.create({
+        userId: restaurant.owner,
+        userType: RoleEnums.Restaurant_Owner,
+        orderId: order._id,
+      });
+
+      const today = new Date();
+      const startofDay = new Date(today).setHours(0, 0, 0, 0);
+      const endofDay = new Date(today).setHours(23, 59, 59, 999);
+
+      const rejectedRequestForTheDay = await RejectedTracker.countDocuments({
+        userId: restaurant.owner,
+        rejectedAt: {
+          $gte: startofDay,
+          $lte: endofDay,
+        },
+      });
+
+      // sending warning email to restaurant
+      if (rejectedRequestForTheDay == 3) {
+        const warningBanHtml = WarningBanEmailHTML({
+          userName: restaurntOwner?.firstName || '',
+          userType: RoleEnums.Restaurant_Owner,
+          rejectionCount: 3,
+        });
+        await emailQueue.add('email', {
+          to: restaurntOwner?.email,
+          subject: 'Warning Ban',
+          body: warningBanHtml,
+          template: 'Warning Ban',
+        });
+      }
+
+      // update restaurant to banned and also setting the worker to unbanned the restaurant after 24 hourd
+      if (rejectedRequestForTheDay >= 5) {
+        await Restaurant.updateOne(
+          {
+            _id: restaurant._id,
+          },
+          {
+            $set: {
+              banned: true,
+            },
+          }
+        );
+
+        const bannedHtml = BannedUserHtml({
+          userName: order.restaurantDetails.name,
+          userType: RoleEnums.Restaurant_Owner,
+          rejectionCount: 5,
+          suspendedAt: newRejectedRequest.rejectedAt.toDateString(),
+          suspensionEnds: new Date(
+            newRejectedRequest.rejectedAt.getTime() + 24 * 60 * 60 * 1000
+          ).toDateString(),
+        });
+
+        await emailQueue.add('email', {
+          to: restaurntOwner?.email,
+          subject: 'Restaurant has been banned for 24 hours',
+          body: bannedHtml,
+          template: 'Restaurant has been banned for 24 hours',
+        });
+
+        await BannedUser.add(
+          'bannedUserWorker',
+          {
+            userId: restaurant.owner,
+            userType: RoleEnums.Restaurant_Owner,
+          },
+          {
+            delay: 24 * 60 * 60 * 1000,
+          }
+        );
+      }
+
+      // notify customer by email that order was rejected
+
+      const rejectedRequestHtml = OrderRejectedEmailHTMl({
+        customerName: order.customerDetails.name,
+        restaurantName: order.restaurantDetails.name,
+        orderId: order._id.toString(),
+      });
+
+      await emailQueue.add('email', {
+        to: order.customerDetails.email,
+        subject: 'Order rejected by Restaurant',
+        body: rejectedRequestHtml,
+        template: 'Order rejected by Restaurant',
+      });
+    } else {
+      throw new AppError(
+        "I'm sorry, you can update this request at the moment, check request or order status",
+        400
+      );
+    }
+  }
+
+  async updateOrder({}: {}) {}
 }

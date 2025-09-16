@@ -155,6 +155,7 @@ export interface IDriver extends IBaseUser {
   };
   avaliableForPickup: boolean;
   isOnline: boolean;
+  lastSeen: Date;
   walletCreated: boolean;
   walletSetup: boolean;
   banned: boolean;
@@ -302,6 +303,10 @@ export interface IOrder extends Document {
     estimatedDeliveryTime: number;
     actualPrepTime: number;
     actualDeliveryTime: number;
+    deliveryLocation: {
+      type: string;
+      coordinates: number[];
+    };
   };
   status: OrderStatusEnum;
   statusHistory: [
@@ -337,6 +342,10 @@ export interface IOrder extends Document {
     restaurantTransferId?: string;
     driverTransferId?: string;
     retryCount: number;
+    driverTransferCount: number;
+    restaurantTransferCount: number;
+    driverRetryNeeded: boolean;
+    restaurantRetryNeeded: boolean;
   };
   specialInstructions: string;
   restaurantNotes: string;

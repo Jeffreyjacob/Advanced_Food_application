@@ -13,6 +13,7 @@ export const createCheckoutSessionValidators = async (
         country: Joi.string().required(),
         zipCode: Joi.string().optional(),
       }).required(),
+      locationCord: Joi.array().items(Joi.number().required()).required(),
     });
 
   return validators.validateAsync(reqBody, { abortEarly: false });

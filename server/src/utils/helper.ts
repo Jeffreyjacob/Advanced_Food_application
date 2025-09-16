@@ -4,9 +4,10 @@ import {
   VehicleTypeEnum,
 } from '../interface/enums/enums';
 import { stripe } from '../config/stripe';
-import { IOrder, IRestaurant } from '../interface/models/models';
+import { IAddress, IOrder, IRestaurant } from '../interface/models/models';
 import { Order } from '../models/order';
 import { retryRefundPayment } from '../queue/retryRefundPayment/queue';
+import NodeGeoCoder from 'node-geocoder';
 
 export const generateOtp = () => {
   return Math.floor(10000 + Math.random() * 90000);
@@ -387,5 +388,42 @@ export const handleRefundedAndTransfer = async ({
         delay: 15 * 60 * 1000,
       }
     );
+  }
+};
+
+export const geocodeAddressOnce = async (
+  orderId: IOrder['_id'],
+  deliveryAddress: IAddress
+): Promise<{ type: string; coordinates: number[] } | null> => {
+  const geo = NodeGeoCoder({ provider: 'openstreetmap' });
+  try {
+    const addressString = [
+      deliveryAddress.street,
+      deliveryAddress.city,
+      deliveryAddress.state,
+      deliveryAddress.zipCode,
+      deliveryAddress.country,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    const res = await geo.geocode(addressString);
+    if (!res || res.length === 0) return null;
+
+    const { latitude, longitude } = res[0];
+
+    const point = {
+      type: 'Point',
+      coordinates: [Number(longitude), Number(latitude)],
+    };
+
+    await Order.updateOne(
+      { _id: orderId },
+      { $set: { deliveryMetrics: { deliveryLocation: point } } }
+    );
+    return point;
+  } catch (error: any) {
+    console.error('Geocode failed', error);
+    return null;
   }
 };

@@ -7,6 +7,8 @@ import { expiredCheckoutSessionWorer } from './queue/expiredCheckoutSession/work
 import { expiredRequestWorker } from './queue/expiredRequest/worker';
 import { retryRefundPaymentWorker } from './queue/retryRefundPayment/worker';
 import { retryFindDriver } from './queue/retryFindingDrivers/worker';
+import { bannedUserWorker } from './queue/bannedUser/worker';
+import { retryTransferWorker } from './queue/retryTransfer/worker';
 
 export const Workers = async () => {
   emailWorker.on('ready', () => {
@@ -30,7 +32,7 @@ export const Workers = async () => {
   });
 
   expiryDocumentWorker.on('error', (err) => {
-    console.log('expiry document worker error:', err);
+    console.error('expiry document worker error:', err);
   });
 
   reminderExpiredDocumentWorker.on('ready', () => {
@@ -38,7 +40,7 @@ export const Workers = async () => {
   });
 
   reminderExpiredDocumentWorker.on('error', (err) => {
-    console.log('reminderExpiredDocument error:', err);
+    console.error('reminderExpiredDocument error:', err);
   });
 
   vehicleValidatorWorker.on('ready', () => {
@@ -46,7 +48,7 @@ export const Workers = async () => {
   });
 
   vehicleValidatorWorker.on('error', (err) => {
-    console.log('vehicle Registeration validator error:', err);
+    console.error('vehicle Registeration validator error:', err);
   });
 
   expiredCheckoutSessionWorer.on('ready', () => {
@@ -54,7 +56,7 @@ export const Workers = async () => {
   });
 
   expiredCheckoutSessionWorer.on('error', (err) => {
-    console.log('expiredCheckoutsession worker error:', err);
+    console.error('expiredCheckoutsession worker error:', err);
   });
 
   expiredRequestWorker.on('ready', () => {
@@ -62,7 +64,7 @@ export const Workers = async () => {
   });
 
   expiredRequestWorker.on('error', (err) => {
-    console.log('expiredRequest worker has error:', err);
+    console.error('expiredRequest worker has error:', err);
   });
 
   retryRefundPaymentWorker.on('ready', () => {
@@ -70,7 +72,7 @@ export const Workers = async () => {
   });
 
   retryRefundPaymentWorker.on('error', (err) => {
-    console.log('retryRefundPayment worker has error', err);
+    console.error('retryRefundPayment worker has error', err);
   });
 
   retryFindDriver.on('ready', () => {
@@ -78,6 +80,22 @@ export const Workers = async () => {
   });
 
   retryFindDriver.on('error', (err) => {
-    console.log('retry find driver worker error:', err);
+    console.error('retry find driver worker error:', err);
+  });
+
+  bannedUserWorker.on('ready', () => {
+    console.log('bannedUser worker is ready ');
+  });
+
+  bannedUserWorker.on('error', (err) => {
+    console.error('bannedUser worker error: ', err);
+  });
+
+  retryTransferWorker.on('ready', () => {
+    console.log('retry transfer worker is ready');
+  });
+
+  retryTransferWorker.on('error', (err) => {
+    console.error('retry transfer worker error: ', err);
   });
 };

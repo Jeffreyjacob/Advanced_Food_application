@@ -76,6 +76,11 @@ const statusHistoryItem = new Schema({
   },
 });
 
+const traceableLocation = {
+  type: { type: String, enum: ['Point'], required: true },
+  coordinates: { type: [Number], trim: true, required: true },
+};
+
 const OrderSchema: Schema<IOrder> = new Schema(
   {
     customerId: {
@@ -151,6 +156,7 @@ const OrderSchema: Schema<IOrder> = new Schema(
         type: Number,
         default: 45,
       },
+      deliveryLocation: traceableLocation,
       actualDeliveryTime: Number,
       actualPrepTime: Number,
     },
@@ -209,6 +215,22 @@ const OrderSchema: Schema<IOrder> = new Schema(
       },
       restaurantTransferId: String,
       driverTransferId: String,
+      driverTransferCount: {
+        type: Number,
+        default: 0,
+      },
+      restaurantTransferCount: {
+        type: Number,
+        default: 0,
+      },
+      driverRetryNeeded: {
+        type: Boolean,
+        default: false,
+      },
+      restaurantRetryNeeded: {
+        type: Boolean,
+        default: false,
+      },
     },
     sessionExpirationJobId: String,
     specialInstructions: String,

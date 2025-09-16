@@ -15,13 +15,11 @@ import {
 import { emailQueue } from '../email/queue';
 import { ExpiredRestaurantRequest } from '../../utils/EmailTemplate/expiredRestaurantRequest';
 import { stripe } from '../../config/stripe';
-import Stripe from 'stripe';
 import { DriverRequest } from '../../models/driverRequest';
 import { Driver } from '../../models/driver';
 import { Restaurant } from '../../models/restaurant';
 import { expiredRequestQueue } from './queue';
 import { CustomerNoDriverFind } from '../../utils/EmailTemplate/customerNoDriver';
-import { RestaurantNoDriver } from '../../utils/EmailTemplate/restaurantNoDriver';
 import { retryFindDriverQueue } from '../retryFindingDrivers/queue';
 import { previousDriversManager } from '../../utils/redisPreviousDriversManager';
 import { handleRefundedAndTransfer } from '../../utils/helper';

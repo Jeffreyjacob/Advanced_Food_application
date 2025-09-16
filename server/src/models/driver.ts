@@ -101,11 +101,14 @@ const DriverSchema: Schema<IDriver> = new Schema(
     },
     avaliableForPickup: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     banned: {
       type: Boolean,
       default: false,
+    },
+    lastSeen: {
+      type: Date,
     },
   },
   {

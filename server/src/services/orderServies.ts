@@ -1543,4 +1543,6 @@ export class OrderServices {
       }
     }
   }
+
+  async getRestaurantRequest({ userId }: { userId: IRestaurantOwner['_id'] }) {}
 }

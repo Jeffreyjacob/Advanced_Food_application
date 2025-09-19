@@ -18,6 +18,8 @@ orderRoute
     OrderController.createChechkoutSession
   );
 
+orderRoute.route('/').get(Protect, OrderController.getOrders);
+
 orderRoute
   .route('/request/restaurant')
   .get(
@@ -37,6 +39,8 @@ orderRoute
     RestricTo(RoleEnums.Driver),
     OrderController.getDriverRequest
   );
+
+orderRoute.route('/:id').get(Protect, OrderController.getOrderById);
 
 orderRoute
   .route('/restaurant/request/update/:id')

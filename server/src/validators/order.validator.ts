@@ -89,3 +89,17 @@ export const getDriverRequestValidators = async (
 
   return validators.validateAsync(reqBody, { abortEarly: false });
 };
+
+export const getOrdersValidators = async (
+  reqBody: IOrderQuery['getOrder']
+): Promise<IOrderQuery['getOrder']> => {
+  const validators: ObjectSchema<IOrderQuery['getOrder']> = Joi.object({
+    status: Joi.string()
+      .valid(...Object.keys(OrderStatusEnum))
+      .optional(),
+    page: Joi.number().optional(),
+    limit: Joi.number().optional(),
+  });
+
+  return validators.validateAsync(reqBody, { abortEarly: false });
+};

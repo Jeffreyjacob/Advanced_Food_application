@@ -11,7 +11,7 @@ import {
 } from '../interface/models/models';
 import { Cart } from '../models/cart';
 import { AppError } from '../utils/appError';
-import mongoose from 'mongoose';
+import mongoose, { Mongoose } from 'mongoose';
 import { Order } from '../models/order';
 import { Customer } from '../models/customer';
 import { Restaurant } from '../models/restaurant';
@@ -1653,5 +1653,74 @@ export class OrderServices {
     };
   }
 
-  async getOrders() {}
+  async getOrders({
+    userId,
+    role,
+    data,
+  }: {
+    userId: IBaseUser['_id'];
+    role: RoleEnums;
+    data: IOrderQuery['getOrder'];
+  }) {
+    const status = data.status && {
+      status: data.status,
+    };
+
+    const page = data.page || 1;
+    const limit = data.limit || 10;
+
+    const skip = (page - 1) * 1000;
+
+    let restaurantId: mongoose.Types.ObjectId | undefined = undefined;
+
+    if (role === RoleEnums.Restaurant_Owner) {
+      const restaurant = await Restaurant.findOne({
+        owner: userId,
+      });
+
+      restaurantId = restaurant?._id;
+    }
+
+    const queryId =
+      role === RoleEnums.Customer
+        ? {
+            customerId: userId,
+          }
+        : role === RoleEnums.Restaurant_Owner
+          ? {
+              restaurantId: restaurantId,
+            }
+          : role === RoleEnums.Driver
+            ? {
+                driverId: userId,
+              }
+            : undefined;
+
+    const totalCount = await Order.countDocuments({
+      ...queryId,
+      ...status,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const order = await Order.find({
+      ...queryId,
+      ...status,
+    })
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    return {
+      data: order,
+      currentPage: page,
+      totalCount,
+      totalPages,
+    };
+  }
+
+  async getOrderById({ orderId }: { orderId: IOrder['_id'] }) {
+    const order = await Order.findById(orderId);
+    return order;
+  }
 }

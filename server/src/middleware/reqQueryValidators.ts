@@ -48,7 +48,7 @@ export const SearchMenuItemValidator = [
     .optional()
     .isInt({ min: 1 })
     .toInt()
-    .withMessage('Page musty be a positive number '),
+    .withMessage('Page must be a positive number '),
 ];
 
 export const ActiveMenuItem = [
@@ -163,6 +163,46 @@ export const getRestaurantMenuitems = [
     .isInt({ min: 1, max: 100 })
     .toInt()
     .withMessage('limit must be between 1 - 100'),
+];
+
+export const getRestaurantRequestValidator = [
+  query('status')
+    .optional()
+    .isString()
+    .trim()
+    .withMessage('status query must be a string'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 0, max: 100 })
+    .toInt()
+    .withMessage('limit must be between 1 - 100'),
+
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('Page must be a positive number'),
+];
+
+export const getDriverRequestValidator = [
+  query('status')
+    .optional()
+    .isString()
+    .trim()
+    .withMessage('status query must be a string'),
+
+  query('limit')
+    .optional()
+    .isInt({ min: 0, max: 100 })
+    .toInt()
+    .withMessage('limit must be between 1 -100'),
+
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('Page must be a positive number'),
 ];
 
 export const handleQueryValidationErrors = (

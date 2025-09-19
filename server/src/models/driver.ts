@@ -116,6 +116,4 @@ const DriverSchema: Schema<IDriver> = new Schema(
   }
 );
 
-DriverSchema.index({ traceableLocation: '2dsphere' });
-
 export const Driver = BaseUser.discriminator<IDriver>('drivers', DriverSchema);

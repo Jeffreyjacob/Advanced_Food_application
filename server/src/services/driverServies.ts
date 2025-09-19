@@ -97,11 +97,23 @@ export class DriverServices {
   }) {
     const personalInfo: any = {};
 
+    console.log(data, 'data');
+
     Object.entries(data).forEach(([key, value]) => {
-      if (['firstName', 'lastName', 'phone', 'country'].includes(key)) {
+      if (
+        [
+          'firstName',
+          'lastName',
+          'phone',
+          'country',
+          'avaliableForPickup',
+        ].includes(key)
+      ) {
         personalInfo[key] = value;
       }
     });
+
+    console.log(personalInfo, 'personalInfo');
 
     // find driver
     const driver = await Driver.findById(userId);

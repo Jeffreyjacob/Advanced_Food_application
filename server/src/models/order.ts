@@ -119,7 +119,9 @@ const OrderSchema: Schema<IOrder> = new Schema(
       name: String,
       phone: String,
       vehicleInfo: {
-        type: String,
+        type: {
+          type: String,
+        },
         plateNumber: String,
       },
     },

@@ -134,6 +134,7 @@ export interface IDriverMutation {
     lastName: string;
     phone: string;
     country: string;
+    avaliableForPickup: boolean;
   };
   updateVehicleRegisteration: {
     url: string;
@@ -277,6 +278,24 @@ export interface IOrderMutation {
   updateDriverRequest: {
     reason?: string;
     status: RequestStatusEnum;
+  };
+}
+
+export interface IOrderQuery {
+  getRestaurantRequest: {
+    status?: RequestStatusEnum;
+    page?: number;
+    limit?: number;
+  };
+  getOrder: {
+    status?: OrderStatusEnum;
+    page?: number;
+    limit?: number;
+  };
+  getDriverRequest: {
+    status?: RequestStatusEnum;
+    page?: number;
+    limit?: number;
   };
 }
 

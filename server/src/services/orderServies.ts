@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { IOrderMutation } from '../interface/interface/interface';
+import { IOrderMutation, IOrderQuery } from '../interface/interface/interface';
 import {
   IBaseUser,
   ICustomer,
@@ -690,29 +690,6 @@ export class OrderServices {
       user.role === RoleEnums.Restaurant_Owner &&
       order.status === OrderStatusEnum.preparing
     ) {
-      // update order status
-
-      await Order.updateOne(
-        {
-          _id: order._id,
-        },
-        {
-          $set: {
-            status: OrderStatusEnum.ready_for_pickup,
-            readyAt: new Date(),
-          },
-          $push: {
-            statusHistory: {
-              status: OrderStatusEnum.ready_for_pickup,
-              note: 'Order is ready for pickup by driver',
-              timestamp: new Date(),
-            },
-          },
-        }
-      );
-
-      // find nearby avaliable driver
-
       const radiusKm = 5 * 1000;
       const nearByDriver = await Driver.find({
         isOnline: true,
@@ -726,6 +703,8 @@ export class OrderServices {
           },
         },
       }).lean();
+
+      // find nearby avaliable driver
 
       if (nearByDriver.length === 0) {
         //check retry limit only when no driver found
@@ -804,7 +783,7 @@ export class OrderServices {
           driver: nearByDriver[0]._id,
           restaurantLocation: restaurant.traceableLocation,
           distanceToCustomer: order.deliveryMetrics.distanceKm,
-          estimatedPickupTime: 15,
+          estimatedPickupTime: new Date(Date.now() + 15 * 60 * 1000),
         });
 
         await previousDriversManager.addDriver(
@@ -840,6 +819,27 @@ export class OrderServices {
           }
         );
       }
+
+      // update order status
+
+      await Order.updateOne(
+        {
+          _id: order._id,
+        },
+        {
+          $set: {
+            status: OrderStatusEnum.ready_for_pickup,
+            readyAt: new Date(),
+          },
+          $push: {
+            statusHistory: {
+              status: OrderStatusEnum.ready_for_pickup,
+              note: 'Order is ready for pickup by driver',
+              timestamp: new Date(),
+            },
+          },
+        }
+      );
     } else if (
       data.status === OrderStatusEnum.picked_up &&
       user.role === RoleEnums.Restaurant_Owner &&
@@ -902,7 +902,7 @@ export class OrderServices {
         Date.now() - new Date(driverDoc.lastSeen).getTime() > 60 * 1000
       ) {
         throw new AppError(
-          'Driver location is stale; ensure GPS is one and try again or try refetch the application',
+          'Driver location is stale; ensure GPS is on and try again or try refetch the application',
           400
         );
       }
@@ -1247,6 +1247,8 @@ export class OrderServices {
         }
       }
 
+      console.log(driver, 'driver');
+
       // update Order
 
       await Order.updateOne(
@@ -1259,7 +1261,10 @@ export class OrderServices {
             driverDetails: {
               name: driver.firstName,
               phone: driver.phone,
-              vehicleInfo: driver.vehicleInfo,
+              vehicleInfo: {
+                type: driver.vehicleInfo.make,
+                plateNumber: driver.vehicleInfo.plateNumber,
+              },
             },
           },
           $push: {
@@ -1544,5 +1549,109 @@ export class OrderServices {
     }
   }
 
-  async getRestaurantRequest({ userId }: { userId: IRestaurantOwner['_id'] }) {}
+  async getRestaurantRequests({
+    userId,
+    data,
+  }: {
+    userId: IRestaurantOwner['_id'];
+    data: IOrderQuery['getRestaurantRequest'];
+  }) {
+    const status = data.status && {
+      requestStatus: data.status,
+    };
+
+    const restaurant = await Restaurant.findOne({
+      owner: userId,
+    });
+
+    if (!restaurant) {
+      throw new AppError('Unable to find restaurant', 404);
+    }
+
+    const page = data.page || 1;
+    const limit = data.limit || 10;
+
+    const skip = (page - 1) * limit;
+
+    const totalCount = await RestaurantRequest.countDocuments({
+      restaurantId: restaurant._id,
+      restaurantOwner: userId,
+      ...status,
+    });
+
+    const totalpages = Math.ceil(totalCount / limit);
+
+    const restaurantRequests = await RestaurantRequest.find({
+      ...status,
+      restaurantId: restaurant._id,
+      restaurantOwner: userId,
+    })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'orderId',
+        select: 'customerDetails items',
+      })
+      .sort({ createdAt: -1 });
+
+    return {
+      data: restaurantRequests,
+      currentPage: page,
+      totalCount,
+      totalpages,
+    };
+  }
+
+  async getDriverRequest({
+    userId,
+    data,
+  }: {
+    userId: IDriver['_id'];
+    data: IOrderQuery['getDriverRequest'];
+  }) {
+    const status = data.status && {
+      requestStatus: data.status,
+    };
+
+    const driver = await Driver.findById(userId);
+
+    if (!driver) {
+      throw new AppError('Unable to find driver', 404);
+    }
+
+    console.log(status, 'status');
+
+    const page = data.page || 1;
+    const limit = data.limit || 10;
+
+    const skip = (page - 1) * limit;
+
+    const totalCount = await DriverRequest.countDocuments({
+      driver: driver._id,
+      ...status,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    const driverRequests = await DriverRequest.find({
+      ...status,
+      driver: driver._id,
+    })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: 'orderId',
+        select: 'customerDetails items deliveryAddress',
+      })
+      .sort({ createdAt: -1 });
+
+    return {
+      data: driverRequests,
+      currentPage: page,
+      totalPages,
+      totalCount,
+    };
+  }
+
+  async getOrders() {}
 }

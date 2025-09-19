@@ -150,7 +150,7 @@ const retryFindDriver = new Worker(
         driver: nearByDriver[0]._id,
         restaurantLocation: restaurant.traceableLocation,
         distanceToCustomer: order.deliveryMetrics.distanceKm,
-        estimatedPickupTime: 15,
+        estimatedPickupTime: new Date(Date.now() + 15 * 60 * 1000),
       });
 
       const requestJobId = await expiredRequestQueue.add(

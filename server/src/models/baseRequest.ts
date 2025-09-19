@@ -6,7 +6,7 @@ const baseRequestSchema: Schema<IBaseRequest> = new Schema(
   {
     orderId: {
       type: Schema.Types.ObjectId,
-      ref: 'orders',
+      ref: 'order',
       required: true,
     },
     requestStatus: {

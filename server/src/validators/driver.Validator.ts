@@ -14,6 +14,7 @@ export const updateDriverInfoValidator = async (
       .valid(...validCountry)
       .optional(),
     phone: Joi.string().optional(),
+    avaliableForPickup: Joi.boolean().optional(),
   });
 
   return validators.validateAsync(reqBody, { abortEarly: false });

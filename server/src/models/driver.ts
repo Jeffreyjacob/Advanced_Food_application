@@ -99,12 +99,21 @@ const DriverSchema: Schema<IDriver> = new Schema(
       type: Boolean,
       default: false,
     },
+    avaliableForPickup: {
+      type: Boolean,
+      default: true,
+    },
+    banned: {
+      type: Boolean,
+      default: false,
+    },
+    lastSeen: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
   }
 );
-
-DriverSchema.index({ traceableLocation: '2dsphere' });
 
 export const Driver = BaseUser.discriminator<IDriver>('drivers', DriverSchema);

@@ -17,6 +17,9 @@ import { handleStripeWebhookConnect } from './webhooks/stripeConnectWebhook';
 import walletRoutes from './routes/walletRoutes';
 import driverRouter from './routes/driverRoutes';
 import { handleVerificationIdentityWebhook } from './webhooks/stripeIdentityWebhook';
+import cartRouter from './routes/cartRoute';
+import orderRoute from './routes/orderRoute';
+import { handleStripeWebhookPayment } from './webhooks/stripePaymentWebbhook';
 
 const limiter = rateLimit({
   windowMs: config.security.rateLimit.windowMs,
@@ -64,6 +67,12 @@ const StartServer = async () => {
     express.raw({ type: 'application/json' }),
     AsycnHandler(handleVerificationIdentityWebhook)
   );
+  app.post(
+    `${config.apiPrefix}/webhook/stripe/payment`,
+    express.raw({ type: 'application/json' }),
+    AsycnHandler(handleStripeWebhookPayment)
+  );
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -75,6 +84,8 @@ const StartServer = async () => {
   app.use(`${config.apiPrefix}/restaurant`, restaurantRoutes);
   app.use(`${config.apiPrefix}/wallet`, walletRoutes);
   app.use(`${config.apiPrefix}/driver`, driverRouter);
+  app.use(`${config.apiPrefix}/cart`, cartRouter);
+  app.use(`${config.apiPrefix}/order`, orderRoute);
 
   app.use(ErrorHandler);
 

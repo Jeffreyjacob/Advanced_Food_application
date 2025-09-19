@@ -22,6 +22,7 @@
     "bull-arena": "^4.5.1",
     "bullmq": "^5.56.4",
     "cloudinary": "^2.7.0",
+    "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",
@@ -37,8 +38,10 @@
     "mongoose": "^8.16.3",
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
+    "node-geocoder": "^4.4.1",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
+    "socket.io": "^4.8.1",
     "stripe": "^18.3.0"
   },
   "devDependencies": {
@@ -51,6 +54,7 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.0.13",
+    "@types/node-geocoder": "^4.2.6",
     "@types/nodemailer": "^6.4.17",
     "@typescript-eslint/eslint-plugin": "^8.36.0",
     "eslint": "^9.31.0",

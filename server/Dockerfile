@@ -7,7 +7,7 @@ EXPOSE 8000
 CMD ["npm","run","dev"]
 
 
-FROM node:18-alpine AS build
+FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package*.json .
 RUN npm install

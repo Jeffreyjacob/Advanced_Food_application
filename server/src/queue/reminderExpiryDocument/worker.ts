@@ -64,7 +64,7 @@ const reminderExpiredDocumentWorker = new Worker(
         await emailQueue.add('reminderExpiredDocument', {
           to: findRestaurantOwner.email,
           subject: `Reminder ${documentType} expiring soon`,
-          html,
+          body: html,
           template: `Reminder ${documentType} expiring soon`,
         });
 
@@ -90,7 +90,7 @@ const reminderExpiredDocumentWorker = new Worker(
         await emailQueue.add('reminder Driver expired document', {
           to: driver.email,
           subject: `Reminder ${documentType} expiring soon`,
-          html,
+          body: html,
           template: `Reminder ${documentType} expiring soon.`,
         });
 

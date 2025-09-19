@@ -99,6 +99,14 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
         },
       },
     },
+    isAcceptingOrders: {
+      type: Boolean,
+      default: false,
+    },
+    isOpen: {
+      type: Boolean,
+      default: true,
+    },
     walletSetup: {
       type: Boolean,
       default: false,
@@ -111,12 +119,16 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
       type: Boolean,
       default: false,
     },
+    banned: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   }
 );
-
+RestaurantSchema.index({ traceableLocation: '2dsphere' });
 RestaurantSchema.index({ owner: 1 });
 RestaurantSchema.index({ cuisineType: 1 });
 

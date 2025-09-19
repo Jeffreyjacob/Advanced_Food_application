@@ -4,6 +4,10 @@ import {
   VehicleTypeEnum,
 } from '../interface/enums/enums';
 import { stripe } from '../config/stripe';
+import { IAddress, IOrder, IRestaurant } from '../interface/models/models';
+import { Order } from '../models/order';
+import { retryRefundPayment } from '../queue/retryRefundPayment/queue';
+import NodeGeoCoder from 'node-geocoder';
 
 export const generateOtp = () => {
   return Math.floor(10000 + Math.random() * 90000);
@@ -178,4 +182,248 @@ export const findVehicleType = (vehicle: string): VehicleTypeEnum => {
     vehicleType = VehicleTypeEnum.BigVehicle;
   }
   return vehicleType as VehicleTypeEnum;
+};
+
+export const BodyParsing = async (reqBody: any) => {
+  const formData = reqBody;
+
+  const parsedbody: any = {};
+
+  const variantMatch: Record<number, Record<string, any>> = {};
+
+  const variantRegex = /^variants\[(\d+)\]\.([A-Za-z0-9_]+)$/;
+
+  const tagsMatch: Record<number, string> = {};
+
+  const tagRegex = /^tags\[(\d+)\]\.([A-Za-z0-9_]+)$/;
+
+  Object.entries(formData).forEach(([key, value]) => {
+    if (['name', 'description', 'menuCategoryId'].includes(key)) {
+      parsedbody[key] = String(value);
+    } else if (['price', 'preparationTime'].includes(key)) {
+      parsedbody[key] = parseInt(value as string, 10);
+    } else if (['isVegetarian', 'isVegan', 'isSpicy'].includes(key)) {
+      parsedbody[key] =
+        value === 'true' ? true : value === 'false' ? false : undefined;
+    } else if (key === 'tags') {
+      parsedbody[key] = value;
+    }
+
+    const match = variantRegex.exec(key);
+
+    if (match && match[1] && match[2]) {
+      const idx = parseInt(match[1], 10);
+      const props = match[2];
+
+      if (!variantMatch[idx]) {
+        variantMatch[idx] = {};
+      }
+
+      if (props === 'name') {
+        variantMatch[idx].name = String(value);
+      } else if (props === 'price') {
+        variantMatch[idx].price = parseInt(value as string);
+      } else if (props === 'description') {
+        variantMatch[idx].description = String(value);
+      } else {
+        variantMatch[idx][props] = value;
+      }
+    }
+
+    const variantIndices = Object.keys(variantMatch)
+      .map((k) => Number(k))
+      .sort((a, b) => a - b);
+
+    if (variantIndices.length > 1) {
+      parsedbody.variants = variantIndices.map((i) => {
+        return variantMatch[i];
+      });
+    }
+  });
+
+  return parsedbody;
+};
+
+export const parseQueryParams = () => {
+  const getString = (value: any) => {
+    const newValue = Array.isArray(value) ? value[0] : value;
+    const value_ = newValue ? String(newValue) : undefined;
+    return value_;
+  };
+
+  const getNumber = (value: any) => {
+    const newValue = Array.isArray(value) ? value[0] : value;
+    const number_ = isNaN(newValue) ? undefined : Number(newValue);
+    return number_;
+  };
+
+  const getBoolean = (value: any) => {
+    const newValue = Array.isArray(value) ? value[0] : value;
+    const isBoolean =
+      newValue === 'true' ? true : newValue === 'false' ? false : undefined;
+    return isBoolean;
+  };
+
+  return { getString, getNumber, getBoolean };
+};
+
+export const findingADriver = async (
+  orderId: IOrder,
+  restaurantId: IRestaurant['_id']
+) => {
+  try {
+    const assignedDriver: string[] = [];
+  } catch (error: any) {}
+};
+
+export const calculateDeliveryRate = (distance: number) => {
+  const baseFee = 2; // two dollar
+  const perKmFee = 0.45; // price per km
+
+  const deliveryRate = baseFee + perKmFee * (distance + 3.5);
+  return deliveryRate;
+};
+
+export const handleRefundedAndTransfer = async ({
+  order,
+  restaurantStripeId,
+  refundAmount,
+  transferAmount,
+  refundReason,
+  transferType,
+}: {
+  order: IOrder;
+  restaurantStripeId?: string;
+  refundAmount?: number;
+  transferAmount?: number;
+  refundReason?: string;
+  transferType?: string;
+}) => {
+  try {
+    const results: {
+      refund?: Stripe.Response<Stripe.Refund>;
+      transfer?: Stripe.Response<Stripe.Transfer>;
+    } = {};
+
+    if (refundAmount && order.payment.stripePaymentintentId) {
+      results.refund = await stripe.refunds.create(
+        {
+          payment_intent: order.payment.stripePaymentintentId,
+          amount: refundAmount,
+          reason: 'requested_by_customer',
+          metadata: {
+            order_id: order._id.toString(),
+            refund_reason: refundReason || 'system_refund',
+          },
+        },
+        {
+          idempotencyKey: `refund_${order._id.toString()}_${refundReason}`,
+        }
+      );
+    }
+
+    if (transferAmount && restaurantStripeId) {
+      results.transfer = await stripe.transfers.create(
+        {
+          amount: transferAmount,
+          currency: 'usd',
+          destination: restaurantStripeId,
+          description: `Payout for order ${order._id.toString()}`,
+          metadata: {
+            order_id: order._id.toString(),
+            restaurant_id: order.restaurantId.toString(),
+            transfer_type: transferType || 'system_payout',
+          },
+        },
+        {
+          idempotencyKey: `transfer_${order._id.toString()}_${transferType}`,
+        }
+      );
+
+      await Order.updateOne(
+        {
+          _id: order._id,
+        },
+        {
+          $set: {
+            'payout.restaurantAmount': transferAmount
+              ? transferAmount / 100
+              : 0,
+            'payout.driverAmount': 0,
+            'payout.restaurantPaidOut': !!results.transfer,
+            'payout.driverPaidOut': false,
+            'payout.payoutDate': new Date(),
+            'payout.refundId': results.refund?.id,
+            'payout.lastAttempt': new Date(),
+            'payout.retryNeeded': false,
+            'payout.restaurantTransferId': results.transfer?.id,
+          },
+        }
+      );
+    }
+    return results;
+  } catch (err: any) {
+    await Order.updateOne(
+      {
+        _id: order._id,
+      },
+      {
+        $set: {
+          'payout.retryNeeded': true,
+          'payout.lastAttempt': new Date(),
+        },
+        $inc: {
+          'payout.retryCount': 1,
+        },
+      }
+    );
+
+    await retryRefundPayment.add(
+      'retryRefundPayment',
+      {
+        orderId: order._id,
+        refundType: 'delivery_refund',
+      },
+      {
+        delay: 15 * 60 * 1000,
+      }
+    );
+  }
+};
+
+export const geocodeAddressOnce = async (
+  orderId: IOrder['_id'],
+  deliveryAddress: IAddress
+): Promise<{ type: string; coordinates: number[] } | null> => {
+  const geo = NodeGeoCoder({ provider: 'openstreetmap' });
+  try {
+    const addressString = [
+      deliveryAddress.street,
+      deliveryAddress.city,
+      deliveryAddress.state,
+      deliveryAddress.zipCode,
+      deliveryAddress.country,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    const res = await geo.geocode(addressString);
+    if (!res || res.length === 0) return null;
+
+    const { latitude, longitude } = res[0];
+
+    const point = {
+      type: 'Point',
+      coordinates: [Number(longitude), Number(latitude)],
+    };
+
+    await Order.updateOne(
+      { _id: orderId },
+      { $set: { deliveryMetrics: { deliveryLocation: point } } }
+    );
+    return point;
+  } catch (error: any) {
+    console.error('Geocode failed', error);
+    return null;
+  }
 };

@@ -92,7 +92,7 @@ const expiryDocumentWorker = new Worker(
         await emailQueue.add('ExpiryDocument', {
           to: findRestaurantOwner.email,
           subject: 'Document Expired',
-          html,
+          body: html,
           template: 'Document Expired',
         });
 
@@ -128,7 +128,7 @@ const expiryDocumentWorker = new Worker(
         await emailQueue.add('Expiry Driver Document', {
           to: driver.email,
           subject: 'Document Expired',
-          html,
+          body: html,
           template: 'Document Expired',
         });
 

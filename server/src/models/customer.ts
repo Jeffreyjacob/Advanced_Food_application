@@ -47,8 +47,6 @@ const CustomerSchema: Schema<ICustomer> = new Schema(
   }
 );
 
-CustomerSchema.index({ traceableLocation: '2dsphere' });
-
 export const Customer = BaseUser.discriminator<ICustomer>(
   'customers',
   CustomerSchema

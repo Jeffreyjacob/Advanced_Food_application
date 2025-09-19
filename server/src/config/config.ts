@@ -47,6 +47,7 @@ export default {
     Stripe_webhook_connect_secret: process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
     Stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     stripe_webhook_identity: process.env.STRIPE_WEBHOOK_IDENTITY,
+    stripe_webhook_payment: process.env.STRIPE_WEBHOOK_PAYMENT,
   },
 
   security: {

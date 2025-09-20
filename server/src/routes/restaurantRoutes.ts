@@ -10,8 +10,11 @@ import {
   handleQueryValidationErrors,
   SearchMenuItemValidator,
 } from '../middleware/reqQueryValidators';
+import CacheMiddleware, { cacheService } from '../utils/cache-service';
 
 const restaurantRoutes = Router();
+
+const cacheMiddleware = new CacheMiddleware(new cacheService());
 
 restaurantRoutes
   .route('/update')
@@ -53,6 +56,7 @@ restaurantRoutes
   .get(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.response(300),
     RestaurantController.getAllMenuCategory
   );
 
@@ -61,6 +65,7 @@ restaurantRoutes
   .get(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.response(300),
     RestaurantController.getActiveMenuCategory
   );
 
@@ -69,6 +74,7 @@ restaurantRoutes
   .post(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.invalidate('auto:/menu/category*'),
     RestaurantController.createMenuCategory
   );
 
@@ -78,6 +84,7 @@ restaurantRoutes
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
     MulterUploadImage.single('image'),
+    cacheMiddleware.invalidate('auto:/menu/item*'),
     RestaurantController.createMenuItem
   );
 restaurantRoutes
@@ -85,6 +92,7 @@ restaurantRoutes
   .put(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.invalidate('auto:/menu/category'),
     RestaurantController.updateDisplayOrderMenuCategory
   );
 
@@ -93,6 +101,7 @@ restaurantRoutes
   .put(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.invalidate('auto:/menu/item'),
     RestaurantController.updateMenuItemDisplayOrder
   );
 
@@ -103,6 +112,7 @@ restaurantRoutes
     handleQueryValidationErrors,
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.response(600),
     RestaurantController.getActiveMenuItems
   );
 
@@ -113,6 +123,7 @@ restaurantRoutes
     handleQueryValidationErrors,
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.response(300),
     RestaurantController.getAllMenuItem
   );
 
@@ -123,6 +134,7 @@ restaurantRoutes
     handleQueryValidationErrors,
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.response(300),
     RestaurantController.SearchMenuitems
   );
 
@@ -131,6 +143,7 @@ restaurantRoutes
   .put(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.invalidate('auto:/menu/category*'),
     RestaurantController.updateMenuCategory
   );
 
@@ -139,6 +152,7 @@ restaurantRoutes
   .put(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.invalidate('auto:/menu/category*'),
     RestaurantController.toggleMenuCategoryStatus
   );
 
@@ -147,6 +161,7 @@ restaurantRoutes
   .delete(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.invalidate('auto:/menu/category*'),
     RestaurantController.deleteMenuCategory
   );
 
@@ -156,6 +171,7 @@ restaurantRoutes
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
     MulterUploadImage.single('image'),
+    cacheMiddleware.invalidate('auto:/menu/item*'),
     RestaurantController.updateMenuItem
   );
 
@@ -164,6 +180,7 @@ restaurantRoutes
   .put(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.invalidate('auto:/menu/item*'),
     RestaurantController.toggleMenuItemStatus
   );
 
@@ -172,6 +189,7 @@ restaurantRoutes
   .delete(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.invalidate('auto:/menu/item*'),
     RestaurantController.deleteMenuItem
   );
 
@@ -180,6 +198,7 @@ restaurantRoutes
   .get(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.response(600),
     RestaurantController.getMenuItemByCategoryId
   );
 
@@ -188,6 +207,7 @@ restaurantRoutes
   .get(
     Protect,
     RestricTo(RoleEnums.Restaurant_Owner),
+    cacheMiddleware.response(600),
     RestaurantController.getMenuItemById
   );
 

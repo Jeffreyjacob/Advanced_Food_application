@@ -10,8 +10,10 @@ import {
   getRestMenuCategories,
   handleQueryValidationErrors,
 } from '../middleware/reqQueryValidators';
+import CacheMiddleware, { cacheService } from '../utils/cache-service';
 
 const customerRoutes = Router();
+const cacheMiddleware = new CacheMiddleware(new cacheService());
 
 customerRoutes
   .route('/')
@@ -44,6 +46,7 @@ customerRoutes
     handleQueryValidationErrors,
     Protect,
     RestricTo(RoleEnums.Customer),
+    cacheMiddleware.response(300),
     CustomerController.GetRestaurantsController
   );
 
@@ -52,6 +55,7 @@ customerRoutes
   .get(
     Protect,
     RestricTo(RoleEnums.Customer),
+    cacheMiddleware.response(600),
     CustomerController.getRestaurantId
   );
 
@@ -62,6 +66,7 @@ customerRoutes
     handleQueryValidationErrors,
     Protect,
     RestricTo(RoleEnums.Customer),
+    cacheMiddleware.response(600),
     CustomerController.getRestaurantAllMenuItems
   );
 
@@ -72,6 +77,7 @@ customerRoutes
     handleQueryValidationErrors,
     Protect,
     RestricTo(RoleEnums.Customer),
+    cacheMiddleware.response(600),
     CustomerController.getRestaurantMenuCategories
   );
 
@@ -82,6 +88,7 @@ customerRoutes
     handleQueryValidationErrors,
     Protect,
     RestricTo(RoleEnums.Customer),
+    cacheMiddleware.response(600),
     CustomerController.getRestaurantMenuItemByCategoryId
   );
 

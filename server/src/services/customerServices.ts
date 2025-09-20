@@ -208,6 +208,8 @@ export class CustomerService {
       .skip(skip)
       .limit(limit);
 
+    console.log(restaurant);
+
     return {
       data: restaurant,
       currentPage: page,

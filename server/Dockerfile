@@ -1,5 +1,5 @@
 # Dev stage
-FROM node:18-alpine AS dev
+FROM node:20-alpine AS dev
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -8,19 +8,16 @@ EXPOSE 8000
 CMD ["npm","run","dev"]
 
 # Build stage
-FROM node:18-slim AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-
-# Allow Node more memory for TypeScript build
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-
-RUN npm run build
+RUN npm run build   
 
 # Production stage
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production

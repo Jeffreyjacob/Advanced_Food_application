@@ -1,9 +1,10 @@
 import moment from 'moment';
 import axios from 'axios';
 import qs from 'qs';
-import config from '../config/config';
 import { IVerifyDocument } from '../interface/interface/interface';
+import { getConfig } from '../config/config';
 
+const config = getConfig();
 export class DocumentVerificationService {
   private ocrApiKey: string;
   private ocrApiUrl: string;

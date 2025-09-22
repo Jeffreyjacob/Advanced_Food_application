@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
-import config from '../config/config';
 import { stripe } from '../config/stripe';
 import { Driver } from '../models/driver';
 import {
@@ -16,7 +15,9 @@ import {
 } from '../utils/helper';
 import { ExpiryDocumentQueue } from '../queue/expiryDocument/queue';
 import { reminderExpiredDocumentQueue } from '../queue/reminderExpiryDocument/queue';
+import { getConfig } from '../config/config';
 
+const config = getConfig();
 const updateDriverVerificationStatus = async (
   session: Stripe.Identity.VerificationSession
 ) => {

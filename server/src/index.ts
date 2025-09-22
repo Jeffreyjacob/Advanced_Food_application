@@ -1,6 +1,5 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import config from './config/config';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
@@ -20,30 +19,38 @@ import { handleVerificationIdentityWebhook } from './webhooks/stripeIdentityWebh
 import cartRouter from './routes/cartRoute';
 import orderRoute from './routes/orderRoute';
 import { handleStripeWebhookPayment } from './webhooks/stripePaymentWebbhook';
-
-const limiter = rateLimit({
-  windowMs: config.security.rateLimit.windowMs,
-  max: config.security.rateLimit.max,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req: Request) => {
-    const ip = Array.isArray(req.headers['x-forwarded-for'])
-      ? req.headers['x-forwarded-for'][0]
-      : typeof req.headers['x-forwarded-for'] === 'string'
-        ? req.headers['x-forwarded-for'].split(',')[0].trim()
-        : (req.ip ?? 'unknown');
-    return ip;
-  },
-  handler: (req: Request, res: Response) => {
-    const mins = config.env === 'development' ? 2 * 60 : 60;
-    res.setHeader('Retry-After', Math.ceil(mins));
-    res.status(429).json({
-      message: `Too many requests, please try again adter:${mins} minutes`,
-    });
-  },
-});
+import { loadEnvFromSSM } from './config/ssm';
+import { AppConfig, getConfig } from './config/config';
 
 const StartServer = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    await loadEnvFromSSM('/advancedFoodApplication/PROD');
+  }
+
+  const config: AppConfig = getConfig();
+
+  const limiter = rateLimit({
+    windowMs: config.security.rateLimit.windowMs,
+    max: config.security.rateLimit.max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req: Request) => {
+      const ip = Array.isArray(req.headers['x-forwarded-for'])
+        ? req.headers['x-forwarded-for'][0]
+        : typeof req.headers['x-forwarded-for'] === 'string'
+          ? req.headers['x-forwarded-for'].split(',')[0].trim()
+          : (req.ip ?? 'unknown');
+      return ip;
+    },
+    handler: (req: Request, res: Response) => {
+      const mins = config.env === 'development' ? 2 * 60 : 60;
+      res.setHeader('Retry-After', Math.ceil(mins));
+      res.status(429).json({
+        message: `Too many requests, please try again adter:${mins} minutes`,
+      });
+    },
+  });
+
   const app = express();
 
   app.use(

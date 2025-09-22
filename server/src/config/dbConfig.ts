@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
-import config from './config';
+import { getConfig } from './config';
 import { BaseUser } from '../models/baseUser';
 
+const config = getConfig();
 const DATABASEURI =
   config.env === 'production'
     ? process.env.PROD_MONGODB_URI

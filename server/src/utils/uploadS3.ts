@@ -5,12 +5,16 @@ import {
   PutObjectCommand,
 } from '@aws-sdk/client-s3';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 const s3 = new S3Client({
   region: process.env.AWS_REGION!,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
+  ...(isDev && {
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+  }),
 });
 
 const BUCKET_NAME = process.env.AWS_BUCKET_NAME!;

@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import config from './config/config';
+
 import cookie from 'cookie';
 import { VerifyAccessToken } from './utils/token.utils';
 import { RoleEnums } from './interface/enums/enums';
@@ -7,7 +7,9 @@ import { ICustomer, IRestaurantOwner } from './interface/models/models';
 import { emailQueue } from './queue/email/queue';
 import { Customer } from './models/customer';
 import { OrderAccepted } from './utils/EmailTemplate/orderAccepted';
+import { getConfig } from './config/config';
 
+const config = getConfig();
 interface CustomSocket extends Socket {
   userId?: string;
   userType?: RoleEnums;

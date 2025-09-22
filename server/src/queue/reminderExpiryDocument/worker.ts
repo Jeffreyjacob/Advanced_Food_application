@@ -5,7 +5,7 @@ import {
 } from '../../interface/enums/enums';
 import { IDriver, IRestaurant } from '../../interface/models/models';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+import { getConfig } from '../../config/config';
 import { Restaurant } from '../../models/restaurant';
 import mongoose from 'mongoose';
 import { AppError } from '../../utils/appError';
@@ -22,6 +22,7 @@ interface ReminderDocumentExpiryData {
   userType: 'Driver' | 'RestaurantOwner';
 }
 
+const config = getConfig();
 const reminderExpiredDocumentWorker = new Worker(
   'reminderExpiredDocument',
   async (job: Job<ReminderDocumentExpiryData>) => {

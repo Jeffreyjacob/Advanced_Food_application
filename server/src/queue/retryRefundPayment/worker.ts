@@ -1,7 +1,7 @@
 import { Job, Worker } from 'bullmq';
 import { IOrder } from '../../interface/models/models';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+import { getConfig } from '../../config/config';
 import { Order } from '../../models/order';
 import { stripe } from '../../config/stripe';
 import { AppError } from '../../utils/appError';
@@ -14,6 +14,8 @@ interface RetryRefundData {
   refundType: 'full_refund' | 'delivery_refund';
   reason?: string;
 }
+
+const config = getConfig();
 
 const retryRefundPaymentWorker = new Worker(
   'retryRefundPayment',

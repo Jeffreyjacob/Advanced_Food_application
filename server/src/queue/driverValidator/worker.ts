@@ -4,7 +4,6 @@ import { DocumentVerificationService } from '../../utils/verificationServices';
 import {
   DocumentStatusEnum,
   expiryDocumentTypeEnum,
-  IdentityVerificationStatusEnum,
   RestaurantVerificationStatusEnum,
 } from '../../interface/enums/enums';
 import { Driver } from '../../models/driver';
@@ -16,13 +15,14 @@ import { ExpiryDocumentQueue } from '../expiryDocument/queue';
 import { reminderExpiredDocumentQueue } from '../reminderExpiryDocument/queue';
 import { DocumentRejectedHTML } from '../../utils/EmailTemplate/documentRejected';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+import { getConfig } from '../../config/config';
 
 interface vehicleValidatorJobData {
   userId: IDriver['_id'];
   documentUrl: string;
 }
 
+const config = getConfig();
 const vehicleValidatorWorker = new Worker(
   'vehicleValidator',
   async (job: Job<vehicleValidatorJobData>) => {

@@ -11,7 +11,6 @@ import { emailQueue } from '../queue/email/queue';
 import { AppError } from '../utils/appError';
 import { EmailVerificationHTMl } from '../utils/EmailTemplate/emailVerification';
 import { generateOtp } from '../utils/helper';
-import config from '../config/config';
 import { BaseUser } from '../models/baseUser';
 import {
   RefreshAccessToken,
@@ -28,7 +27,9 @@ import { ForgetPasswordHTML } from '../utils/EmailTemplate/passwordReset';
 import { Tokens } from '../models/token';
 import mongoose from 'mongoose';
 import { IBaseUser } from '../interface/models/models';
+import { getConfig } from '../config/config';
 
+const config = getConfig();
 export class AuthenticationServices {
   async registerCustomer({
     data,

@@ -1,7 +1,6 @@
 import { Job, Worker } from 'bullmq';
 import { IOrder, IRestaurant } from '../../interface/models/models';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
 import { Order } from '../../models/order';
 import { AppError } from '../../utils/appError';
 import { Restaurant } from '../../models/restaurant';
@@ -17,15 +16,15 @@ import { retryFindDriverQueue } from './queue';
 import { emailQueue } from '../email/queue';
 import { CustomerNoDriverFind } from '../../utils/EmailTemplate/customerNoDriver';
 import { previousDriversManager } from '../../utils/redisPreviousDriversManager';
-import { stripe } from '../../config/stripe';
-import Stripe from 'stripe';
 import { handleRefundedAndTransfer } from '../../utils/helper';
+import { getConfig } from '../../config/config';
 
 interface RetryFindDriver {
   orderId: IOrder['_id'];
   restaurantId: IRestaurant['_id'];
 }
 
+const config = getConfig();
 const retryFindDriver = new Worker(
   'retryFindDriver',
   async (job: Job<RetryFindDriver>) => {

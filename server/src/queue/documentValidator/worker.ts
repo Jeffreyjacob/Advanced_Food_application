@@ -4,12 +4,11 @@ import { IRestaurantMutation } from '../../interface/interface/interface';
 import { DocumentVerificationService } from '../../utils/verificationServices';
 import {
   DocumentStatusEnum,
-  expiryDocumentTypeEnum,
   RestaurantDocumentTypeEnum,
   RestaurantVerificationStatusEnum,
 } from '../../interface/enums/enums';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+
 import { Restaurant } from '../../models/restaurant';
 import { AppError } from '../../utils/appError';
 import { RestaurantOwner } from '../../models/restaurantOwner';
@@ -18,6 +17,7 @@ import { DocumentApprovedHTML } from '../../utils/EmailTemplate/documentApproved
 import { DocumentRejectedHTML } from '../../utils/EmailTemplate/documentRejected';
 import { ExpiryDocumentQueue } from '../expiryDocument/queue';
 import { reminderExpiredDocumentQueue } from '../reminderExpiryDocument/queue';
+import { getConfig } from '../../config/config';
 
 interface documentValidatorJobData {
   userId: IRestaurantOwner['_id'];
@@ -25,6 +25,7 @@ interface documentValidatorJobData {
   businessName: string;
 }
 
+const config = getConfig();
 const documentValidatorWorker = new Worker(
   'documentValidator',
   async (job: Job<documentValidatorJobData>) => {

@@ -10,13 +10,14 @@ import { AppError } from '../utils/appError';
 import { stripe } from '../config/stripe';
 import { Wallets } from '../models/wallet';
 import { countriesISO } from '../utils/countryIso';
-import config from '../config/config';
 import { Request } from 'express';
 import { IBaseUser } from '../interface/models/models';
 import { Driver } from '../models/driver';
 import { BaseUser } from '../models/baseUser';
 import { Restaurant } from '../models/restaurant';
+import { getConfig } from '../config/config';
 
+const config = getConfig();
 export class WalletServices {
   async createStripeConnectAccount({
     data,

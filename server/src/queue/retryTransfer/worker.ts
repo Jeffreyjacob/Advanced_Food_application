@@ -1,7 +1,7 @@
 import { Job, Worker } from 'bullmq';
 import { IOrder } from '../../interface/models/models';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+import { getConfig } from '../../config/config';
 import { Order } from '../../models/order';
 import { AppError } from '../../utils/appError';
 import { stripe } from '../../config/stripe';
@@ -15,6 +15,7 @@ interface RetryTransferData {
   reason: string;
 }
 
+const config = getConfig();
 const retryTransferWorker = new Worker(
   'retryTransferWorker',
   async (job: Job<RetryTransferData>) => {

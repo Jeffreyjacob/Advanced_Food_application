@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { stripe } from '../config/stripe';
-import config from '../config/config';
 import { Wallets } from '../models/wallet';
 import { AppError } from '../utils/appError';
 import { mapStripeAccountStatus } from '../utils/helper';
@@ -14,7 +13,9 @@ import {
 import { BaseUser } from '../models/baseUser';
 import { Restaurant } from '../models/restaurant';
 import { Driver } from '../models/driver';
+import { getConfig } from '../config/config';
 
+const config = getConfig();
 const handleAccountUpdated = async (account: Stripe.Account) => {
   try {
     const wallet = await Wallets.findOne({

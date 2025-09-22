@@ -2,17 +2,19 @@ import { Job, Worker } from 'bullmq';
 import { RoleEnums } from '../../interface/enums/enums';
 import { IBaseUser } from '../../interface/models/models';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+
 import { Restaurant } from '../../models/restaurant';
 import mongoose from 'mongoose';
 import { AppError } from '../../utils/appError';
 import { Driver } from '../../models/driver';
+import { getConfig } from '../../config/config';
 
 interface bannedUserJobData {
   userId: IBaseUser['_id'];
   userType: RoleEnums;
 }
 
+const config = getConfig();
 const bannedUserWorker = new Worker(
   'bannedUserWorker',
   async (job: Job<bannedUserJobData>) => {

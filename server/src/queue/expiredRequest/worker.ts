@@ -1,7 +1,7 @@
 import { Job, Worker } from 'bullmq';
 import { IBaseRequest, IOrder } from '../../interface/models/models';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+
 import { RestaurantRequest } from '../../models/restaurantRequest';
 import mongoose from 'mongoose';
 import { AppError } from '../../utils/appError';
@@ -24,6 +24,7 @@ import { retryFindDriverQueue } from '../retryFindingDrivers/queue';
 import { previousDriversManager } from '../../utils/redisPreviousDriversManager';
 import { handleRefundedAndTransfer } from '../../utils/helper';
 import { retryRefundPayment } from '../retryRefundPayment/queue';
+import { getConfig } from '../../config/config';
 
 interface ExpiredRequestData {
   orderId: IOrder['_id'];
@@ -31,6 +32,7 @@ interface ExpiredRequestData {
   requestType: 'Restaurant' | 'Driver';
 }
 
+const config = getConfig();
 const expiredRequestWorker = new Worker(
   'expiredRequest',
   async (job: Job<ExpiredRequestData>) => {

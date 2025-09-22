@@ -1,6 +1,6 @@
 import { Job, Worker } from 'bullmq';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+
 import { IOrder } from '../../interface/models/models';
 import mongoose from 'mongoose';
 import { Order } from '../../models/order';
@@ -11,12 +11,14 @@ import {
 } from '../../interface/enums/enums';
 import { RestaurantRequest } from '../../models/restaurantRequest';
 import { expiredRequestQueue } from '../expiredRequest/queue';
+import { getConfig } from '../../config/config';
 
 interface expiredCheckoutSessionData {
   orderId: IOrder['_id'];
   sessionId: string;
 }
 
+const config = getConfig();
 const expiredCheckoutSessionWorer = new Worker(
   'expiredCheckoutSession',
   async (job: Job<expiredCheckoutSessionData>) => {

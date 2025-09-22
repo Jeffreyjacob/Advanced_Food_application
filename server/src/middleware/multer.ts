@@ -1,8 +1,6 @@
 import { Request } from 'express';
 import multer from 'multer';
 import { AppError } from '../utils/appError';
-import { s3 } from '../config/aws';
-import { ManagedUpload } from 'aws-sdk/clients/s3';
 
 const storage = multer.memoryStorage();
 

@@ -18,9 +18,9 @@ import { ExpiryDocumentHTML } from '../../utils/EmailTemplate/expiredDocument';
 import { RestaurantOwner } from '../../models/restaurantOwner';
 import { emailQueue } from '../email/queue';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
 import { Driver } from '../../models/driver';
 import { LicenseExpiredNotificationHTML } from '../../utils/EmailTemplate/driverExpiredDocument';
+import { getConfig } from '../../config/config';
 
 interface ExpiryDocumentData {
   restaurantId?: IRestaurant['_id'];
@@ -29,6 +29,7 @@ interface ExpiryDocumentData {
   userType: 'Driver' | 'RestaurantOwner';
 }
 
+const config = getConfig();
 const expiryDocumentWorker = new Worker(
   'expiryDocument',
   async (job: Job<ExpiryDocumentData>) => {

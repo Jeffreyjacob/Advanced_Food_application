@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import config from '../config/config';
 import { IBaseUser } from '../interface/models/models';
 import jwt from 'jsonwebtoken';
 import { RoleEnums } from '../interface/enums/enums';
+import { getConfig } from '../config/config';
 
 interface TokenPayload {
   id: string;
@@ -13,6 +13,7 @@ interface TokenResponse {
   accessToken: string;
   refreshToken: string;
 }
+const config = getConfig();
 
 export const GenerateToken = (user: IBaseUser): TokenResponse => {
   const accessToken = jwt.sign(

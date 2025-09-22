@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
-import config from '../config/config';
 import { stripe } from '../config/stripe';
 import { Order } from '../models/order';
 import mongoose from 'mongoose';
@@ -21,7 +20,9 @@ import { expiredRequestQueue } from '../queue/expiredRequest/queue';
 import { PaymentSucessfulEmailHTML } from '../utils/EmailTemplate/paymentSuccessful';
 import { PaymentFailedEmailHTML } from '../utils/EmailTemplate/paymentFailed';
 import { retryRefundPayment } from '../queue/retryRefundPayment/queue';
+import { getConfig } from '../config/config';
 
+const config = getConfig();
 async function handleCheckoutSessionCompleted(event: Stripe.Event) {
   const sessions = event.data.object as Stripe.Checkout.Session;
 

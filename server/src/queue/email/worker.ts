@@ -1,7 +1,7 @@
 import { Job, Worker } from 'bullmq';
 import { SendEmail } from '../../utils/nodemailer';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+import { getConfig } from '../../config/config';
 import { emailQueue } from './queue';
 
 interface EmailJobData {
@@ -12,6 +12,7 @@ interface EmailJobData {
   data?: Record<string, any>;
 }
 
+const config = getConfig();
 const emailWorker = new Worker(
   'email',
   async (job: Job<EmailJobData>) => {

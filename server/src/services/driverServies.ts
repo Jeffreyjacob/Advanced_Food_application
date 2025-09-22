@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import config from '../config/config';
 import { stripe } from '../config/stripe';
 import { IDriver } from '../interface/models/models';
 import { Driver } from '../models/driver';
@@ -12,7 +11,9 @@ import {
 import { IDriverMutation } from '../interface/interface/interface';
 import { Wallets } from '../models/wallet';
 import { DriverVehicleValidatorQueue } from '../queue/driverValidator/queue';
+import { getConfig } from '../config/config';
 
+const config = getConfig();
 export class DriverServices {
   async createVerificationSession(driverId: IDriver['_id']) {
     const driver = await Driver.findById(driverId);

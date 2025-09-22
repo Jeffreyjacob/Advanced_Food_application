@@ -1,7 +1,8 @@
 import { Queue } from 'bullmq';
 import { redisConnection } from '../../config/redisConfig';
-import config from '../../config/config';
+import { getConfig } from '../../config/config';
 
+const config = getConfig();
 export const DriverVehicleValidatorQueue = new Queue('vehicleValidator', {
   connection: redisConnection,
   defaultJobOptions: {

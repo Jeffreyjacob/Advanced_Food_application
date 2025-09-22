@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
-import config from './config';
+import { getConfig } from './config';
 
+const config = getConfig();
 const redisConfig = {
   host: config.redis.host,
   port: config.redis.port,

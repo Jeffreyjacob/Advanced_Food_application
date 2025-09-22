@@ -23,6 +23,7 @@ import {
 } from '../validators/menuCategory.validators';
 import mongoose from 'mongoose';
 import { BodyParsing, parseQueryParams } from '../utils/helper';
+import { uploadFileToS3 } from '../utils/uploadS3';
 
 export class RestaurantController {
   private static restaurantService = new RestaurantServies();
@@ -31,7 +32,10 @@ export class RestaurantController {
     async (req: Request, res: Response, next: NextFunction) => {
       let logo: string | undefined = undefined;
       if (req.file) {
-        const imageUrl = await uploadImage(req.file as Express.Multer.File);
+        const imageUrl = await uploadFileToS3(
+          req.file as Express.Multer.File,
+          'restaurantFiles'
+        );
         logo = imageUrl;
       }
 
@@ -70,8 +74,9 @@ export class RestaurantController {
     async (req: Request, res: Response, next: NextFunction) => {
       let url: string = '';
       if (req.file) {
-        const imageUrl = await uploadDocumentToCloudinary(
-          req.file as Express.Multer.File
+        const imageUrl = await uploadFileToS3(
+          req.file as Express.Multer.File,
+          'restaurantFiles'
         );
         url = imageUrl;
       }
@@ -103,8 +108,9 @@ export class RestaurantController {
       let imageUrl: string = '';
 
       if (req.file) {
-        const url = await uploadDocumentToCloudinary(
-          req.file as Express.Multer.File
+        const url = await uploadFileToS3(
+          req.file as Express.Multer.File,
+          'restaurantFiles'
         );
         imageUrl = url;
       }
@@ -269,7 +275,10 @@ export class RestaurantController {
     async (req: Request, res: Response, next: NextFunction) => {
       let imageUrl: string = '';
       if (req.file) {
-        const image = await uploadImage(req.file as Express.Multer.File);
+        const image = await uploadFileToS3(
+          req.file as Express.Multer.File,
+          'menuItemFile'
+        );
         imageUrl = image;
       }
 
@@ -304,7 +313,10 @@ export class RestaurantController {
       const menuItemId = req.params.id;
 
       if (req.file) {
-        const url = await uploadImage(req.file as Express.Multer.File);
+        const url = await uploadFileToS3(
+          req.file as Express.Multer.File,
+          'MenuFile'
+        );
         imageUrl = url;
       }
 

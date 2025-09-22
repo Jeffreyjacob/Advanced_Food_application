@@ -6,6 +6,7 @@ import {
   updateVehicleRegisterationValidators,
 } from '../validators/driver.Validator';
 import { uploadDocumentToCloudinary } from '../utils/uploadImages';
+import { uploadFileToS3 } from '../utils/uploadS3';
 
 export class DriverController {
   private static driverServices = new DriverServices();
@@ -61,8 +62,9 @@ export class DriverController {
     async (req: Request, res: Response, next: NextFunction) => {
       let imageUrl: string = '';
       if (req.file) {
-        const document = await uploadDocumentToCloudinary(
-          req.file as Express.Multer.File
+        const document = await uploadFileToS3(
+          req.file as Express.Multer.File,
+          'driverDocuments'
         );
         imageUrl = document;
       }

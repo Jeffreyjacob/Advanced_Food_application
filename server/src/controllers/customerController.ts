@@ -13,6 +13,7 @@ import {
 import mongoose from 'mongoose';
 import { uploadImage } from '../utils/uploadImages';
 import { parseQueryParams } from '../utils/helper';
+import { uploadFileToS3 } from '../utils/uploadS3';
 
 export class CustomerController {
   private static customerService = new CustomerService();
@@ -36,7 +37,10 @@ export class CustomerController {
     async (req: Request, res: Response, next: NextFunction) => {
       let avatar: string | undefined = undefined;
       if (req.file) {
-        const imageUrl = await uploadImage(req.file as Express.Multer.File);
+        const imageUrl = await uploadFileToS3(
+          req.file as Express.Multer.File,
+          'avatars'
+        );
         avatar = imageUrl;
       }
 

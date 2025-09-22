@@ -2,7 +2,36 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export default {
+export interface AppConfig {
+  env: string;
+  port: number | string;
+  apiPrefix: string;
+  frontendUrls: {
+    baseUrl: string;
+    verifiyEmail: string;
+    passwordReset: string;
+  };
+  tokens: any;
+  email: any;
+  cloudinary: any;
+  stripe: any;
+  security: {
+    cors: {
+      origin: string;
+      credentials: boolean;
+    };
+    rateLimit: {
+      windowMs: number;
+      max: number;
+    };
+  };
+  redis: any;
+  bullmq: any;
+  OCR: any;
+}
+
+// Use a function to generate config dynamically
+export const getConfig = (): AppConfig => ({
   env: process.env.NODE_ENV || 'development',
   port: process.env.PORT || 8000,
   apiPrefix: process.env.API_PREFIX || '/api/v1',
@@ -82,8 +111,9 @@ export default {
     },
     concurrency: parseInt(process.env.BULLMQ_CONCURRENCY || '10', 10),
   },
+
   OCR: {
     API_KEY: process.env.OCRAPIKEY!,
     URL: process.env.OCR_URL,
   },
-};
+});

@@ -18,13 +18,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
    && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=development
-ENV NODE_OPTIONS="--max-old-space-size=4096"  
 COPY package.json package-lock.json* ./ 
 RUN npm ci
 
 #Copy the rest of the source code and run the typescript build
 COPY . .
-RUN npm run build
+RUN npm run build -- --verbose || (echo "TypeScript build failed" && exit 1)
 
 # Production stage
 FROM node:20-slim AS runner

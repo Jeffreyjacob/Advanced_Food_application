@@ -47,4 +47,4 @@ USER node
 #Expose the port your app listens (default from your env/compose is 4000)
 EXPOSE 8000
 
-CMD ["node","dist/index.js"]
+CMD ["node","distindex.js"]

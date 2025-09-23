@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
    && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=development
+RUN NODE_OPTIONS="--max-old-space-size=2048"
 COPY package.json package-lock.json* ./ 
 RUN npm ci
 

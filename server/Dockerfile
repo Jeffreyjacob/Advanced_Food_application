@@ -23,7 +23,7 @@ RUN npm ci
 
 #Copy the rest of the source code and run the typescript build
 COPY . .
-RUN npm run build -- --verbose || (echo "TypeScript build failed" && exit 1)
+RUN npm run build 
 
 # Production stage
 FROM node:20-slim AS runner

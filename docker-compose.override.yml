@@ -4,7 +4,7 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-      target: dev
+      target: builder
     volumes:
       - ./server:/app
     ports:

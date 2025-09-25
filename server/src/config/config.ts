@@ -2,7 +2,36 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export default {
+export interface AppConfig {
+  env: string;
+  port: number | string;
+  apiPrefix: string;
+  frontendUrls: {
+    baseUrl: string;
+    verifiyEmail: string;
+    passwordReset: string;
+  };
+  tokens: any;
+  email: any;
+  cloudinary: any;
+  stripe: any;
+  security: {
+    cors: {
+      origin: string;
+      credentials: boolean;
+    };
+    rateLimit: {
+      windowMs: number;
+      max: number;
+    };
+  };
+  redis: any;
+  bullmq: any;
+  OCR: any;
+}
+
+// Use a function to generate config dynamically
+export const getConfig = (): AppConfig => ({
   env: process.env.NODE_ENV || 'development',
   port: process.env.PORT || 8000,
   apiPrefix: process.env.API_PREFIX || '/api/v1',
@@ -44,8 +73,10 @@ export default {
   stripe: {
     stripe_secret_key: process.env.STRIPE_SECRET_KEY,
     stripe_publishable_key: process.env.STRIPE_PUBLISHABLE_KEY,
-    Stripe_webhook_connect_secret: process.env.STRIPE_WEBHOOK_CONNECT_SECRET,
+    Stripe_webhook_connect_secret: process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
     Stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+    stripe_webhook_identity: process.env.STRIPE_WEBHOOK_IDENTITY,
+    stripe_webhook_payment: process.env.STRIPE_WEBHOOK_PAYMENT,
   },
 
   security: {
@@ -58,4 +89,31 @@ export default {
       max: parseInt(process.env.NODEENV === 'development' ? '1000' : '100', 10),
     },
   },
-};
+
+  redis: {
+    host: process.env.REDIS_HOST || 'redis',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    password: process.env.REDIS_PASSWORD || undefined,
+  },
+
+  bullmq: {
+    defaultJobOptions: {
+      removeOnComplete: parseInt(
+        process.env.BULLMQ_REMOVE_ON_COMPLETE || '100',
+        10
+      ),
+      removeOnFail: parseInt(process.env.BULLMQ_ON_FAIL || '50', 10),
+      attempts: parseInt(process.env.BULL_MQ_ATTEMPTS || '3', 10),
+      backoff: {
+        type: 'exponential',
+        delay: parseInt(process.env.BULLMQ_BACKOFF_DELAY || '2000', 10),
+      },
+    },
+    concurrency: parseInt(process.env.BULLMQ_CONCURRENCY || '10', 10),
+  },
+
+  OCR: {
+    API_KEY: process.env.OCRAPIKEY!,
+    URL: process.env.OCR_URL,
+  },
+});

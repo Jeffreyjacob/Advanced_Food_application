@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nigerian Vehicle Registration Certificate</title>
+    <style>
+      body {
+        font-family: 'Times New Roman', serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 20px;
+      }
+      .certificate {
+        width: 210mm;
+        height: 297mm;
+        background: white;
+        margin: 0 auto;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+        border: 2px solid #2c5530;
+      }
+      .header {
+        text-align: center;
+        border-bottom: 2px solid #2c5530;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+      }
+      .coat-of-arms {
+        width: 80px;
+        height: 80px;
+        background: #2c5530;
+        border-radius: 50%;
+        margin: 0 auto 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 24px;
+      }
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c5530;
+        margin: 10px 0;
+      }
+      .subtitle {
+        font-size: 18px;
+        color: #2c5530;
+        margin: 5px 0;
+      }
+      .cert-number {
+        background: #2c5530;
+        color: white;
+        padding: 5px 15px;
+        display: inline-block;
+        margin: 10px 0;
+        font-weight: bold;
+      }
+      .content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
+      }
+      .section {
+        border: 1px solid #2c5530;
+        padding: 15px;
+        background: #fafafa;
+      }
+      .section-title {
+        background: #2c5530;
+        color: white;
+        padding: 8px;
+        margin: -15px -15px 15px -15px;
+        font-weight: bold;
+        text-align: center;
+      }
+      .field {
+        display: flex;
+        margin-bottom: 12px;
+        align-items: flex-start;
+      }
+      .field-label {
+        font-weight: bold;
+        width: 120px;
+        flex-shrink: 0;
+        color: #2c5530;
+      }
+      .field-value {
+        flex: 1;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 2px;
+        min-height: 20px;
+      }
+      .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 120px;
+        color: rgba(44, 85, 48, 0.05);
+        font-weight: bold;
+        z-index: 1;
+      }
+      .footer {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+      }
+      .signature-section {
+        text-align: center;
+        width: 200px;
+      }
+      .signature-line {
+        border-top: 1px solid #333;
+        margin-top: 50px;
+        padding-top: 5px;
+        font-size: 12px;
+      }
+      .validity-section {
+        background: #fffbcb;
+        border: 2px solid #f4c430;
+        padding: 10px;
+        text-align: center;
+        margin-top: 30px;
+      }
+      .serial-number {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 10px;
+        color: #666;
+      }
+      .qr-placeholder {
+        width: 60px;
+        height: 60px;
+        background: #333;
+        margin: 10px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="certificate">
+      <div class="serial-number">Serial No: LAGOS/VRC/2024/001234</div>
+      <div class="watermark">LAGOS STATE</div>
+
+      <div class="header">
+        <div class="coat-of-arms">🛡️</div>
+        <div class="title">FEDERAL REPUBLIC OF NIGERIA</div>
+        <div class="subtitle">LAGOS STATE GOVERNMENT</div>
+        <div class="subtitle">MINISTRY OF TRANSPORTATION</div>
+        <div class="subtitle">VEHICLE LICENSING OFFICE</div>
+        <div class="cert-number">CERTIFICATE OF REGISTRATION</div>
+      </div>
+
+      <div class="content">
+        <div class="section">
+          <div class="section-title">OWNER INFORMATION</div>
+          <div class="field">
+            <div class="field-label">Owner Name:</div>
+            <div class="field-value">ADEBAYO OLUMIDE JOHNSON</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Address:</div>
+            <div class="field-value">25 ALLEN AVENUE, IKEJA</div>
+          </div>
+          <div class="field">
+            <div class="field-label">City:</div>
+            <div class="field-value">IKEJA</div>
+          </div>
+          <div class="field">
+            <div class="field-label">State:</div>
+            <div class="field-value">LAGOS</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Phone:</div>
+            <div class="field-value">08012345678</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Occupation:</div>
+            <div class="field-value">BUSINESS EXECUTIVE</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">VEHICLE INFORMATION</div>
+          <div class="field">
+            <div class="field-label">Make:</div>
+            <div class="field-value">TOYOTA</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Model:</div>
+            <div class="field-value">CAMRY</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Year:</div>
+            <div class="field-value">2022</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Color:</div>
+            <div class="field-value">BLACK</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Body Type:</div>
+            <div class="field-value">SEDAN</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Engine Size:</div>
+            <div class="field-value">2.5L</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Fuel Type:</div>
+            <div class="field-value">PETROL</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Transmission:</div>
+            <div class="field-value">AUTOMATIC</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content" style="margin-top: 20px">
+        <div class="section">
+          <div class="section-title">REGISTRATION DETAILS</div>
+          <div class="field">
+            <div class="field-label">Plate Number:</div>
+            <div class="field-value">KJA-789-FG</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Registration Number:</div>
+            <div class="field-value">LG-VR-2024-001234</div>
+          </div>
+          <div class="field">
+            <div class="field-label">VIN:</div>
+            <div class="field-value">2T1BURHE5NC123456</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Chassis Number:</div>
+            <div class="field-value">2T1BURHE5NC123456</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Engine Number:</div>
+            <div class="field-value">2ARFE8765432</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Registration Type:</div>
+            <div class="field-value">PRIVATE</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Category:</div>
+            <div class="field-value">PASSENGER VEHICLE</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">DATES & FEES</div>
+          <div class="field">
+            <div class="field-label">Issue Date:</div>
+            <div class="field-value">MARCH 15, 2024</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Expiry Date:</div>
+            <div class="field-value">MARCH 14, 2026</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Registration Fee:</div>
+            <div class="field-value">₦25,000.00</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Road Worthiness:</div>
+            <div class="field-value">VALID TILL MAR 2025</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Insurance:</div>
+            <div class="field-value">VALID</div>
+          </div>
+          <div class="qr-placeholder">QR</div>
+        </div>
+      </div>
+
+      <div class="validity-section">
+        <strong>VALIDITY PERIOD: 2 YEARS</strong><br />
+        <small
+          >This certificate is valid from March 15, 2024 to March 14,
+          2026</small
+        >
+      </div>
+
+      <div class="footer">
+        <div class="signature-section">
+          <div class="signature-line">
+            Director<br />
+            Vehicle Licensing Office
+          </div>
+        </div>
+        <div style="text-align: center">
+          <strong>LAGOS STATE GOVERNMENT</strong><br />
+          <small
+            >Vehicle Licensing Office<br />
+            Alausa, Ikeja, Lagos<br />
+            Tel: 01-7000000</small
+          >
+        </div>
+        <div class="signature-section">
+          <div class="signature-line">
+            Official Stamp<br />
+            Date: 15/03/2024
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Add some dynamic elements for testing
+      document.addEventListener('DOMContentLoaded', function () {
+        // You can modify values here for different test cases
+        console.log(
+          'Nigerian Vehicle Registration Certificate loaded for testing'
+        );
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "8000:8000"
+    image: fooddeliverybackend:latest
+    container_name: backend
+    environment:
+      - NODE_ENV=production

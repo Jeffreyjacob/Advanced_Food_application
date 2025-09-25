@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
-import config from './config';
+import { getConfig } from './config';
 
+const config = getConfig();
 cloudinary.config({
   cloud_name: config.cloudinary.cloud_name,
   api_key: config.cloudinary.cloudinary_api_key,

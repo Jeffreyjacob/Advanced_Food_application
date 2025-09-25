@@ -1,36 +1,56 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import config from './config/config';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import ConnectDB from './config/dbConfig';
 import { ErrorHandler } from './middleware/errorhandler';
-
-const limiter = rateLimit({
-  windowMs: config.security.rateLimit.windowMs,
-  max: config.security.rateLimit.max,
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req: Request) => {
-    const ip = Array.isArray(req.headers['x-forwarded-for'])
-      ? req.headers['x-forwarded-for'][0]
-      : typeof req.headers['x-forwarded-for'] === 'string'
-        ? req.headers['x-forwarded-for'].split(',')[0].trim()
-        : (req.ip ?? 'unknown');
-    return ip;
-  },
-  handler: (req: Request, res: Response) => {
-    const mins = config.env === 'development' ? 2 * 60 : 60;
-    res.setHeader('Retry-After', Math.ceil(mins));
-    res.status(429).json({
-      message: `Too many requests, please try again adter:${mins} minutes`,
-    });
-  },
-});
+import { serverAdapter } from './BullBoard';
+import authRoutes from './routes/authRoutes';
+import customerRoutes from './routes/customerRoutes';
+import { Workers } from './worker';
+import restaurantRoutes from './routes/restaurantRoutes';
+import { AsycnHandler } from './utils/asyncHandler';
+import { handleStripeWebhookConnect } from './webhooks/stripeConnectWebhook';
+import walletRoutes from './routes/walletRoutes';
+import driverRouter from './routes/driverRoutes';
+import { handleVerificationIdentityWebhook } from './webhooks/stripeIdentityWebhook';
+import cartRouter from './routes/cartRoute';
+import orderRoute from './routes/orderRoute';
+import { handleStripeWebhookPayment } from './webhooks/stripePaymentWebbhook';
+import { loadEnvFromSSM } from './config/ssm';
+import { AppConfig, getConfig } from './config/config';
 
 const StartServer = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    await loadEnvFromSSM('/advancedFoodApplication/PROD');
+  }
+
+  const config: AppConfig = getConfig();
+
+  const limiter = rateLimit({
+    windowMs: config.security.rateLimit.windowMs,
+    max: config.security.rateLimit.max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req: Request) => {
+      const ip = Array.isArray(req.headers['x-forwarded-for'])
+        ? req.headers['x-forwarded-for'][0]
+        : typeof req.headers['x-forwarded-for'] === 'string'
+          ? req.headers['x-forwarded-for'].split(',')[0].trim()
+          : (req.ip ?? 'unknown');
+      return ip;
+    },
+    handler: (req: Request, res: Response) => {
+      const mins = config.env === 'development' ? 2 * 60 : 60;
+      res.setHeader('Retry-After', Math.ceil(mins));
+      res.status(429).json({
+        message: `Too many requests, please try again adter:${mins} minutes`,
+      });
+    },
+  });
+
   const app = express();
 
   app.use(
@@ -44,8 +64,35 @@ const StartServer = async () => {
   app.use(morgan('common'));
   app.use(limiter);
   app.use(cookieParser());
+  app.post(
+    `${config.apiPrefix}/webhook/stripe/connect`,
+    express.raw({ type: 'application/json' }),
+    AsycnHandler(handleStripeWebhookConnect)
+  );
+  app.post(
+    `${config.apiPrefix}/webhook/stripe/identity`,
+    express.raw({ type: 'application/json' }),
+    AsycnHandler(handleVerificationIdentityWebhook)
+  );
+  app.post(
+    `${config.apiPrefix}/webhook/stripe/payment`,
+    express.raw({ type: 'application/json' }),
+    AsycnHandler(handleStripeWebhookPayment)
+  );
+
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  await Workers();
+
+  app.use(`${config.apiPrefix}/admin/queues`, serverAdapter.getRouter());
+  app.use(`${config.apiPrefix}/auth`, authRoutes);
+  app.use(`${config.apiPrefix}/customer`, customerRoutes);
+  app.use(`${config.apiPrefix}/restaurant`, restaurantRoutes);
+  app.use(`${config.apiPrefix}/wallet`, walletRoutes);
+  app.use(`${config.apiPrefix}/driver`, driverRouter);
+  app.use(`${config.apiPrefix}/cart`, cartRouter);
+  app.use(`${config.apiPrefix}/order`, orderRoute);
 
   app.use(ErrorHandler);
 

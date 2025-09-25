@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { AppError } from '../utils/appError';
 import { ValidationError } from 'joi';
 import { NextFunction, Request, Response } from 'express';
-import config from '../config/config';
+import { getConfig } from '../config/config';
 
 interface MongoError extends Error {
   code?: number;
@@ -10,6 +10,7 @@ interface MongoError extends Error {
   errmsg?: string;
 }
 
+const config = getConfig();
 const handleValidationErrorDb = (
   err: mongoose.Error.ValidationError
 ): AppError => {
